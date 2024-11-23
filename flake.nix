@@ -48,10 +48,5 @@
         # pkgs.fzf
       ];
     };
-
-    # Overlay
-    overlays.default = final: prev: {
-      trevbar = self.packages.${final.stdenv.system}.trevbar;
-    };
   };
 }
