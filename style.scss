@@ -1,0 +1,135 @@
+// https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/theme/Adwaita/_colors-public.scss
+$theme_fg_color: "@theme_fg_color";
+$theme_bg_color: "@theme_bg_color";
+$theme_selected_bg_color: "@theme_selected_bg_color";
+
+window.Bar {
+    background: transparent;
+    font-weight: bold;
+
+    >centerbox {
+        padding-top: 3px;
+        padding-bottom: 3px;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    // box.blur {
+    //     background-color: #{$theme_selected_bg_color};
+    //     color: black;
+    //     border-radius: 20px;
+    //     padding-left: 6px;
+    //     padding-right: 6px;
+    // }
+
+    .Workspaces {
+        min-height: 0px;
+        margin: 0px;
+        padding: 0px;
+
+        button {
+            all: unset;
+            padding: unset;
+            border: unset;
+
+            min-height: 12px;
+            min-width: 12px;
+            transition:
+                250ms background,
+                250ms border-radius;
+
+            // padding-top: 5px;
+            // padding-bottom: 5px;
+            // padding-left: 5px;
+            // padding-right: 5px;
+
+            margin-left: 12px;
+            font-size: 0pt;
+
+            border-radius: 12px;
+
+            background-color: gray;
+
+            // border: 2px;
+            // border-style: solid;
+            // border-color: transparent;
+            //border-radius: 50%;
+            //margin-left: 2px;
+        }
+
+        button:hover {
+            background-color: #{$theme_selected_bg_color};
+        }
+
+        button.focused {
+            background-color: #{$theme_selected_bg_color};
+        }
+    }
+
+    .title {
+        icon {
+            font-size: 1.5em;
+            margin-right: 4px;
+        }
+
+        label {
+            font-size: 10pt;
+        }
+    }
+
+    .Bar-right {
+        >* {
+            margin-left: 2px;
+        }
+
+        .CpuUsage {
+            font-weight: normal;
+            border-radius: 5px;
+            padding-left: 6px;
+            padding-right: 6px;
+
+            icon {
+                font-size: 1.3em;
+            }
+
+            >* {
+                margin-left: 5px;
+            }
+        }
+
+        .Battery {
+            border-radius: 5px;
+            padding-left: 6px;
+            padding-right: 6px;
+        }
+
+        .Wifi {
+            border-radius: 5px;
+            padding-left: 6px;
+            padding-right: 6px;
+        }
+
+        .AudioSlider {
+
+            button {
+                background: transparent;
+            }
+
+            .slider {
+                min-width: 100px;
+                margin-left: 5px;
+                margin-right: 10px;
+            }
+        }
+
+        .Tray {
+            button {
+                background: transparent;
+            }
+        }
+
+        .Time {
+            padding-left: 6px;
+            padding-right: 6px;
+        }
+    }
+}
