@@ -73,15 +73,14 @@ function Title(): JSX.Element {
                 return "";
             }
 
-            const icon = Gtk.IconTheme.get_default().lookup_icon(client.initial_class.toLowerCase(), 32, null)?.get_filename()
-
+            const icon = Astal.Icon.lookup_icon(client.initial_class.toLowerCase())?.get_filename()
+            
             if (icon) {
                 return <icon icon={icon} />
-            } else {
-                return "";
             }
-        }
-        )}
+
+            return "";
+        })}
         {focused.as(client => (
             client && <label label={bind(client, "title").as(String)} />
         ))}
@@ -213,10 +212,8 @@ function CpuUsage(): JSX.Element {
         return total;
     });
 
-    const icon = Gtk.IconTheme.get_default().lookup_icon('cpu', 32, null)?.get_filename();
-
     return <box className="CpuUsage">
-        {icon && <icon icon={icon} />}
+        <label label='CPU' />
         <label label={bind(cpuTotal).as(t => t.toString() + '%')} />
     </box>
 }
@@ -227,13 +224,14 @@ function MemoryUsage(): JSX.Element {
     const memoryTotal = Variable<number>(0).poll(2000, () => {
         GTop.glibtop_get_mem(memory);
 
-        return Math.round((memory.free / memory.total) * 100);
+        // This is the wrong way of doing this https://unix.stackexchange.com/questions/499649/is-cached-memory-de-facto-free
+        const availableUsed = memory.used - memory.cached;
+
+        return Math.round((availableUsed / memory.total) * 100);
     });
 
-    const icon = Gtk.IconTheme.get_default().lookup_icon('media-memory', 32, null)?.get_filename();
-
     return <box className="CpuUsage">
-        {icon && <icon icon={icon} />}
+        <label label='RAM' />
         <label label={bind(memoryTotal).as(t => t.toString() + '%')} />
     </box>
 }
