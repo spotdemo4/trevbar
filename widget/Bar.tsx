@@ -1,5 +1,5 @@
 import { App, Astal, Gtk, Gdk } from "astal/gtk3"
-import { Variable, GLib, bind, exec, execAsync } from "astal"
+import { Variable, GLib, bind, exec, execAsync, signal } from "astal"
 import { getHyprlandMonitor, sortByMaster, sleep, getIcon } from "../utils/utils"
 import Hyprland from "gi://AstalHyprland"
 import Battery from "gi://AstalBattery"
@@ -60,9 +60,27 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 
 function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
     const hypr = Hyprland.get_default()
+    const clients = Variable(hypr.get_clients().filter((c) => c.workspace.id === workspace.id))
+
+    hypr.connect('client-added', (_, c) => {
+        if (c.workspace.id === workspace.id) {
+            clients.set([...clients.get(), c]);
+        }
+    });
+
+    hypr.connect('client-removed', (_, c) => {
+        const newClients = clients.get().filter(client => client.address != c)
+        if (newClients !== clients.get()) {
+            clients.set([...newClients]);
+        }
+    });
+
+    hypr.connect('client-moved', (hy, _) => {
+        clients.set(hy.get_clients().filter((client) => client.workspace.id === workspace.id))
+    })
 
     return <box>
-        {bind(hypr, "clients").as(clients => sortByMaster(clients.filter((c) => c.workspace.id === workspace.id))
+        {bind(clients).as(clients => sortByMaster(clients)
             .map(client => {
                 const icon = getIcon(client.initialClass);
                 return <icon icon={icon} />
