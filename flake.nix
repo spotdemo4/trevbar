@@ -23,6 +23,7 @@
             ags.packages.${system}.wireplumber
             ags.packages.${system}.bluetooth
             pkgs.libgtop
+            pkgs.libsoup_3
           ];
         })
       ];
@@ -45,6 +46,7 @@
         ags.packages.${system}.wireplumber
         ags.packages.${system}.bluetooth
         pkgs.libgtop
+        pkgs.libsoup_3
         # pkgs.fzf
       ];
     };

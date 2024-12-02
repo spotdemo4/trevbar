@@ -1,4 +1,5 @@
-import { Gdk, Gtk } from "astal/gtk3"
+import { Astal, Gdk } from "astal/gtk3"
+import { timeout } from "astal/time"
 import Hyprland from "gi://AstalHyprland"
 
 export function getHyprlandMonitor(monitor: Gdk.Monitor): Hyprland.Monitor | null {
@@ -36,4 +37,40 @@ export function getHyprlandMonitor(monitor: Gdk.Monitor): Hyprland.Monitor | nul
     }
 
     return null;
+}
+
+export function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        timeout(ms, resolve);
+    });
+}
+
+export function sortByMaster(clients: Hyprland.Client[]) {
+    if (clients.length === 0) {
+        return [];
+    }
+
+    // Find master by the most left nonfloating client
+    return clients.sort((a, b) => {
+        if (a.floating === b.floating) {
+            return a.x - b.x
+        }
+
+        return !a.floating && b.floating ? 1 : -1;
+    });
+}
+
+export function getIcon(n: string) {
+    const name = n.toLowerCase();
+
+    if (name == "zen-alpha") {
+        return getIcon("firefox");
+    }
+
+    const icon = Astal.Icon.lookup_icon(name)?.get_filename()
+    if (icon) {
+        return icon;
+    }
+
+    return "item-missing-symbolic";
 }

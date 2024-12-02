@@ -1,14 +1,13 @@
-import { App, Astal, Gtk, Gdk, Widget } from "astal/gtk3"
-import { Variable, GLib, bind } from "astal"
-import { getHyprlandMonitor } from "../utils/utils"
+import { App, Astal, Gtk, Gdk } from "astal/gtk3"
+import { Variable, GLib, bind, exec, execAsync } from "astal"
+import { getHyprlandMonitor, sortByMaster, sleep, getIcon } from "../utils/utils"
 import Hyprland from "gi://AstalHyprland"
-// import Mpris from "gi://AstalMpris"
 import Battery from "gi://AstalBattery"
 import Wp from "gi://AstalWp"
 import Network from "gi://AstalNetwork"
 import Tray from "gi://AstalTray"
 import GTop from "gi://GTop?version=2.0"
-//import Bluetooth from "gi://AstalBluetooth"
+import Soup from "gi://Soup?version=3.0"
 
 export default function Bar(gdkmonitor: Gdk.Monitor) {
     return <window
@@ -20,17 +19,17 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
             | Astal.WindowAnchor.RIGHT}
         application={App}>
         <centerbox>
-            <box hexpand halign={Gtk.Align.START}>
+            <box hexpand halign={Gtk.Align.START} className="left">
                 <Workspaces monitor={gdkmonitor} />
             </box>
-            <box>
+            <box className="center">
                 <Title />
             </box>
-            <box hexpand halign={Gtk.Align.END} className="Bar-right">
+            <box hexpand halign={Gtk.Align.END} className="right">
+                <Syncthing />
+                <Tailscale />
                 <MemoryUsage />
                 <CpuUsage />
-                <BatteryLevel />
-                <Wifi />
                 <AudioSlider />
                 <SysTray />
                 <Time />
@@ -42,22 +41,32 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
 function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
     const hypr = Hyprland.get_default()
 
-    return <box className="Workspaces">
+    return <box className="workspaces">
         {bind(hypr, "workspaces").as(wss => wss
             .filter(ws => getHyprlandMonitor(monitor) === ws.get_monitor())
             .sort((a, b) => a.id - b.id)
-            .map(ws => (
-                <button
-                    className={bind(hypr, "focusedWorkspace").as(fw =>
-                        ws === fw ? "focused" : "")}
-                    valign={Gtk.Align.CENTER}
-                    halign={Gtk.Align.CENTER}
-                    tooltipMarkup={`<b>${ws.get_name()}</b>`}
-                    onClicked={() => ws.focus()}>
-                    {ws.id}
+            .map(ws => {
+                return <button
+                    onClicked={() => ws.focus()}
+                    tooltipMarkup={`<b>Workspace ${ws.name}</b>`}
+                    className={bind(hypr, "focusedWorkspace").as(fw => ws === fw ? "focused" : "")}
+                >
+                    <Workspace workspace={ws} />
                 </button>
-            ))
+            })
         )}
+    </box>
+}
+
+function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
+    const hypr = Hyprland.get_default()
+
+    return <box>
+        {bind(hypr, "clients").as(clients => sortByMaster(clients.filter((c) => c.workspace.id === workspace.id))
+            .map(client => {
+                const icon = getIcon(client.initialClass);
+                return <icon icon={icon} />
+            }))}
     </box>
 }
 
@@ -66,15 +75,15 @@ function Title(): JSX.Element {
     const focused = bind(hypr, "focusedClient")
 
     return <box
-        className="blur title"
+        className="title"
         visible={focused.as(Boolean)}>
         {focused.as(client => {
             if (!client) {
                 return "";
             }
 
-            const icon = Astal.Icon.lookup_icon(client.initial_class.toLowerCase())?.get_filename()
-            
+            const icon = getIcon(client.initialClass);
+
             if (icon) {
                 return <icon icon={icon} />
             }
@@ -90,12 +99,13 @@ function Title(): JSX.Element {
 function SysTray() {
     const tray = Tray.get_default()
 
-    return <box className="Tray">
+    return <box className="tray">
         {bind(tray, "items").as(items => items.map(item => {
             if (item.iconThemePath) {
                 App.add_icons(item.iconThemePath)
             }
 
+            const icon = getIcon(item.iconName);
             const menu = item.create_menu()
 
             return <button
@@ -105,7 +115,7 @@ function SysTray() {
                     menu?.popup_at_widget(self, Gdk.Gravity.SOUTH, Gdk.Gravity.NORTH, null)
                 }}
             >
-                <icon gIcon={bind(item, "gicon")} />
+                {icon ? <icon icon={icon} /> : <icon gIcon={bind(item, "gicon")} />}
             </button>
         }))}
     </box>
@@ -114,18 +124,26 @@ function SysTray() {
 function AudioSlider() {
     const speaker = Wp.get_default()?.audio.defaultSpeaker!
     const show = Variable(false)
+    const visible = Variable(false)
 
-    return <box className="AudioSlider">
+    show.subscribe(async (s) => {
+        if (s) {
+            visible.set(s);
+        } else {
+            await sleep(250);
+            visible.set(s);
+        }
+    })
+
+    return <box>
         <button
-            onClickRelease={_ => {
-                show.set(!show.get())
-            }}
+            onClickRelease={() => show.set(!show.get())}
         >
             <icon icon={bind(speaker, "volumeIcon")} />
         </button>
         <slider
-            visible={bind(show).as(Boolean)}
-            className="slider"
+            className={bind(show).as(show => show ? "slider show" : "slider hide")}
+            visible={bind(visible).as(Boolean)}
             hexpand
             onDragged={({ value }) => speaker.volume = value}
             value={bind(speaker, "volume")}
@@ -133,16 +151,16 @@ function AudioSlider() {
     </box>
 }
 
-function Wifi() {
-    const { wifi } = Network.get_default()
+// function Wifi() {
+//     const { wifi } = Network.get_default()
 
-    return <icon
-        visible={bind(wifi, "ssid").as(Boolean)}
-        tooltipText={bind(wifi, "ssid").as(String)}
-        className="Wifi"
-        icon={bind(wifi, "iconName")}
-    />
-}
+//     return <icon
+//         visible={bind(wifi, "ssid").as(Boolean)}
+//         tooltipText={bind(wifi, "ssid").as(String)}
+//         className="Wifi"
+//         icon={bind(wifi, "iconName")}
+//     />
+// }
 
 // function Media() {
 //     const mpris = Mpris.get_default()
@@ -160,28 +178,38 @@ function Wifi() {
 //     </box>
 // }
 
-function BatteryLevel() {
-    const bat = Battery.get_default()
+// function BatteryLevel() {
+//     const bat = Battery.get_default()
 
-    return <box className="Battery"
-        visible={bind(bat, "isPresent")}>
-        <icon icon={bind(bat, "batteryIconName")} />
-        <label label={bind(bat, "percentage").as(p =>
-            `${Math.floor(p * 100)} %`
-        )} />
-    </box>
-}
+//     return <box className="Battery"
+//         visible={bind(bat, "isPresent")}>
+//         <icon icon={bind(bat, "batteryIconName")} />
+//         <label label={bind(bat, "percentage").as(p =>
+//             `${Math.floor(p * 100)} %`
+//         )} />
+//     </box>
+// }
 
-function Time({ format = "%H:%M" }): JSX.Element {
+function Time(): JSX.Element {
     const time = Variable<string>("").poll(1000, () =>
-        GLib.DateTime.new_now_local().format(format)!)
+        GLib.DateTime.new_now_local().format("%H:%M")!)
 
-    return <box className="time">
-        <label
-            className="Time"
-            onDestroy={() => time.drop()}
-            label={time()}
-        />
+    const date = Variable<string>("").poll(60 * 1000, () =>
+        GLib.DateTime.new_now_local().format("%d/%m/%Y")!)
+
+    let showDate = Variable<boolean>(false)
+
+    return <box>
+        <button onClickRelease={() => showDate.set(!showDate.get())} onDestroy={() => {
+            time.drop();
+            date.drop()
+            showDate.drop()
+        }}>
+            {bind(showDate).as(show => show ?
+                <label label={date()} /> :
+                <label label={time()} />
+            )}
+        </button>
     </box>
 }
 
@@ -212,9 +240,13 @@ function CpuUsage(): JSX.Element {
         return total;
     });
 
-    return <box className="CpuUsage">
-        <label label='CPU' />
-        <label label={bind(cpuTotal).as(t => t.toString() + '%')} />
+    return <box>
+        <button onClickRelease={_ => execAsync('kitty btop')}>
+            <box>
+                <icon icon='processor-symbolic' />
+                <label label={bind(cpuTotal).as(t => t.toString() + '%')} onDestroy={() => cpuTotal.drop()} />
+            </box>
+        </button>
     </box>
 }
 
@@ -230,9 +262,63 @@ function MemoryUsage(): JSX.Element {
         return Math.round((availableUsed / memory.total) * 100);
     });
 
-    return <box className="CpuUsage">
-        <label label='RAM' />
-        <label label={bind(memoryTotal).as(t => t.toString() + '%')} />
+    return <box>
+        <button onClickRelease={_ => execAsync('kitty btop')}>
+            <box>
+                <icon icon='memory-symbolic' />
+                <label label={bind(memoryTotal).as(t => t.toString() + '%')} onDestroy={() => memoryTotal.drop()} />
+            </box>
+        </button>
+    </box>
+}
+
+function Tailscale(): JSX.Element {
+    const isConnected = Variable<boolean>(false).poll(2000, () => {
+        try {
+            exec('tailscale status')
+
+            return true;
+        } catch (_) {
+            return false;
+        }
+    })
+
+    return <box>
+        <button onClickRelease={_ => execAsync('xdg-open https://login.tailscale.com/admin/machines')}>
+            <icon icon="interlinked-rectangles-symbolic" tooltipMarkup={`<b>Tailscale</b>`} css={bind(isConnected).as(t => t ? "color: #39FF14;" : "color: #ff073a;")} />
+        </button>
+    </box>
+}
+
+function Syncthing(): JSX.Element {
+    const isConnected = Variable<boolean>(false).poll(2000, async () => {
+        let json: { status: string };
+
+        try {
+            const session = new Soup.Session();
+            const message = new Soup.Message({
+                method: "GET",
+                uri: GLib.Uri.parse("http://localhost:8384/rest/noauth/health", GLib.UriFlags.NONE)
+            })
+
+            const response = session.send_and_read(message, null).toArray();
+            const responseData = new TextDecoder('utf-8').decode(response);
+            json = JSON.parse(responseData);
+        } catch (e) {
+            return false;
+        }
+
+        if (json.status === "OK") {
+            return true;
+        } else {
+            return false;
+        }
+    })
+
+    return <box>
+        <button onClickRelease={_ => execAsync("xdg-open http://localhost:8384/")}>
+            <icon icon="network-server-symbolic" tooltipMarkup={`<b>Syncthing</b>`} css={bind(isConnected).as(t => t ? "color: #39FF14;" : "color: #ff073a;")} />
+        </button>
     </box>
 }
 
