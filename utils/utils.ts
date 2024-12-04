@@ -61,16 +61,26 @@ export function sortByMaster(clients: Hyprland.Client[]) {
 }
 
 export function getIcon(n: string) {
+    if (n == null) {
+        return "item-missing-symbolic";
+    }
+
     const name = n.toLowerCase();
 
     if (name == "zen-alpha") {
         return getIcon("firefox");
+    } else if (name == "jetbrains-datagrip") {
+        return getIcon("datagrip")
+    } else if (name == "jetbrains-idea-ce") {
+        return getIcon("idea")
     }
 
     const icon = Astal.Icon.lookup_icon(name)?.get_filename()
     if (icon) {
         return icon;
     }
+
+    print(n);
 
     return "item-missing-symbolic";
 }

@@ -133,7 +133,7 @@ function SysTray() {
                     menu?.popup_at_widget(self, Gdk.Gravity.SOUTH, Gdk.Gravity.NORTH, null)
                 }}
             >
-                {icon ? <icon icon={icon} /> : <icon gIcon={bind(item, "gicon")} />}
+                {icon != "item-missing-symbolic" ? <icon icon={icon} /> : <icon gIcon={bind(item, "gicon")} />}
             </button>
         }))}
     </box>
