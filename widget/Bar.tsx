@@ -1,6 +1,6 @@
-import { App, Astal, Gtk, Gdk } from "astal/gtk3"
-import { Variable, GLib, bind, exec, execAsync, signal } from "astal"
-import { getHyprlandMonitor, sortByMaster, sleep, getIcon } from "../utils/utils"
+import { App, Astal, Gtk, Gdk, Widget } from "astal/gtk3"
+import { Variable, GLib, bind, exec, execAsync, Binding } from "astal"
+import { getHyprlandMonitor, sortByMaster, sleep, Bicon, doesBiconExist } from "../utils/utils"
 import Hyprland from "gi://AstalHyprland"
 import Battery from "gi://AstalBattery"
 import Wp from "gi://AstalWp"
@@ -26,10 +26,10 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
                 <Title />
             </box>
             <box hexpand halign={Gtk.Align.END} className="right">
-                <Syncthing />
-                <Tailscale />
                 <MemoryUsage />
                 <CpuUsage />
+                <Syncthing />
+                <Tailscale />
                 <AudioSlider />
                 <SysTray />
                 <Time />
@@ -82,8 +82,7 @@ function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
     return <box>
         {bind(clients).as(clients => sortByMaster(clients)
             .map(client => {
-                const icon = getIcon(client.initialClass);
-                return <icon icon={icon} />
+                return <Bicon name={client.initialClass} tooltip={client.title} />
             }))}
     </box>
 }
@@ -100,21 +99,15 @@ function Title(): JSX.Element {
                 return "";
             }
 
-            const icon = getIcon(client.initialClass);
-
-            if (icon) {
-                return <icon icon={icon} />
-            }
-
-            return "";
+            return <Bicon name={client.initialClass} />
         })}
         {focused.as(client => (
-            client && <label label={bind(client, "title").as(String)} />
+            client && <label valign={Gtk.Align.CENTER} label={bind(client, "title").as(String)} />
         ))}
     </box>
 }
 
-function SysTray() {
+function SysTray(): JSX.Element {
     const tray = Tray.get_default()
 
     return <box className="tray">
@@ -123,8 +116,11 @@ function SysTray() {
                 App.add_icons(item.iconThemePath)
             }
 
-            const icon = getIcon(item.iconName);
             const menu = item.create_menu()
+            const name =
+                item.title != "" ? item.title :
+                    item.tooltipMarkup != "" ? item.tooltipMarkup :
+                        item.id != "" ? item.id : ''
 
             return <button
                 tooltipMarkup={bind(item, "tooltipMarkup")}
@@ -133,7 +129,7 @@ function SysTray() {
                     menu?.popup_at_widget(self, Gdk.Gravity.SOUTH, Gdk.Gravity.NORTH, null)
                 }}
             >
-                {icon != "item-missing-symbolic" ? <icon icon={icon} /> : <icon gIcon={bind(item, "gicon")} />}
+                {doesBiconExist(name) ? <Bicon name={name} tooltip={name} symbolic={true} /> : <icon gIcon={bind(item, "gicon")} />}
             </button>
         }))}
     </box>
@@ -153,7 +149,7 @@ function AudioSlider() {
         }
     })
 
-    return <box>
+    return <box className="audio-slider">
         <button
             onClickRelease={() => show.set(!show.get())}
         >
@@ -258,14 +254,11 @@ function CpuUsage(): JSX.Element {
         return total;
     });
 
-    return <box>
-        <button onClickRelease={_ => execAsync('kitty btop')}>
-            <box>
-                <icon icon='processor-symbolic' />
-                <label label={bind(cpuTotal).as(t => t.toString() + '%')} onDestroy={() => cpuTotal.drop()} />
-            </box>
-        </button>
-    </box>
+    const button = <button onClickRelease={_ => execAsync('kitty btop')}>
+        <icon className="symbol" icon='processor-symbolic' />
+    </button>
+
+    return Percentage(button, cpuTotal);
 }
 
 function MemoryUsage(): JSX.Element {
@@ -280,14 +273,11 @@ function MemoryUsage(): JSX.Element {
         return Math.round((availableUsed / memory.total) * 100);
     });
 
-    return <box>
-        <button onClickRelease={_ => execAsync('kitty btop')}>
-            <box>
-                <icon icon='memory-symbolic' />
-                <label label={bind(memoryTotal).as(t => t.toString() + '%')} onDestroy={() => memoryTotal.drop()} />
-            </box>
-        </button>
-    </box>
+    const button = <button onClickRelease={_ => execAsync('kitty btop')}>
+        <icon className="symbol" icon='memory-symbolic' />
+    </button>
+
+    return Percentage(button, memoryTotal)
 }
 
 function Tailscale(): JSX.Element {
@@ -302,8 +292,8 @@ function Tailscale(): JSX.Element {
     })
 
     return <box>
-        <button onClickRelease={_ => execAsync('xdg-open https://login.tailscale.com/admin/machines')}>
-            <icon icon="interlinked-rectangles-symbolic" tooltipMarkup={`<b>Tailscale</b>`} css={bind(isConnected).as(t => t ? "color: #39FF14;" : "color: #ff073a;")} />
+        <button onClickRelease={_ => execAsync('xdg-open https://login.tailscale.com/admin/machines')} className={bind(isConnected).as(t => t ? "healthy" : "unhealthy")}>
+            <Bicon name="tailscale" tooltip="Tailscale" />
         </button>
     </box>
 }
@@ -334,9 +324,115 @@ function Syncthing(): JSX.Element {
     })
 
     return <box>
-        <button onClickRelease={_ => execAsync("xdg-open http://localhost:8384/")}>
-            <icon icon="network-server-symbolic" tooltipMarkup={`<b>Syncthing</b>`} css={bind(isConnected).as(t => t ? "color: #39FF14;" : "color: #ff073a;")} />
+        <button onClickRelease={_ => execAsync("xdg-open http://localhost:8384/")} className={bind(isConnected).as(t => t ? "healthy" : "unhealthy")}>
+            <Bicon name="syncthing" tooltip="Syncthing" />
         </button>
     </box>
 }
 
+function Percentage(widget: Gtk.Widget, num: Variable<number>) {
+    const blocksCSS = new Map<string, Variable<string>>();
+    const table = Gtk.Table.new(3, 3, true)
+    table.name = "table";
+    table.visible = true;
+    table.widthRequest = 32;
+
+    // For each column
+    for (let i = 0; i <= 2; i++) {
+        // For each row
+        for (let j = 0; j <= 2; j++) {
+            let cssvar: Variable<string>;
+            if (blocksCSS.has(`${i}-${j}`)) {
+                cssvar = blocksCSS.get(`${i}-${j}`)!
+            } else {
+                cssvar = Variable("");
+                blocksCSS.set(`${i}-${j}`, cssvar);
+            }
+
+            const box = new Widget.Box({
+                name: `block-${i}-${j}`,
+                className: bind(cssvar).as((css) => css)
+            });
+
+            table.attach_defaults(box, i, i + 1, j, j + 1)
+        }
+    }
+
+    const Overlay = Astal.Overlay.new();
+    Overlay.name = "percentage";
+    Overlay.set_child(table);
+    Overlay.add_overlay(widget);
+    Overlay.visible = true;
+
+    num.subscribe((num) => {
+        const outof12 = Math.floor(num / 8.333333333333334);
+
+        // Bottom left 0-2
+        if (outof12 >= 12) {
+            blocksCSS.get("0-2")?.set("bottom left")
+        } else if (outof12 >= 1) {
+            blocksCSS.get("0-2")?.set("nbottom left")
+        } else {
+            blocksCSS.get("0-2")?.set("nbottom nleft")
+        }
+
+        // Bottom 1-2
+        if (outof12 >= 11) {
+            blocksCSS.get("1-2")?.set("bottom")
+        } else {
+            blocksCSS.get("1-2")?.set("nbottom")
+        }
+
+        // Bottom right 2-2
+        if (outof12 >= 10) {
+            blocksCSS.get("2-2")?.set("bottom right")
+        } else if (outof12 >= 9) {
+            blocksCSS.get("2-2")?.set("nbottom right")
+        } else {
+            blocksCSS.get("2-2")?.set("nbottom nright")
+        }
+
+        // Right 2-1
+        if (outof12 >= 8) {
+            blocksCSS.get("2-1")?.set("right")
+        } else {
+            blocksCSS.get("2-1")?.set("nright")
+        }
+
+        // Top right 2-0
+        if (outof12 >= 7) {
+            blocksCSS.get("2-0")?.set("top right")
+        } else if (outof12 >= 6) {
+            blocksCSS.get("2-0")?.set("top nright")
+        } else {
+            blocksCSS.get("2-0")?.set("ntop nright")
+        }
+
+        // Top 1-0
+        if (outof12 >= 5) {
+            blocksCSS.get("1-0")?.set("top")
+        } else {
+            blocksCSS.get("1-0")?.set("ntop")
+        }
+
+        // Top left 0-0
+        if (outof12 >= 4) {
+            blocksCSS.get("0-0")?.set("top left")
+        } else if (outof12 >= 3) {
+            blocksCSS.get("0-0")?.set("ntop left")
+        } else {
+            blocksCSS.get("0-0")?.set("ntop nleft")
+        }
+
+        // Left 0-1
+        if (outof12 >= 2) {
+            blocksCSS.get("0-1")?.set("left")
+        } else {
+            blocksCSS.get("0-1")?.set("nleft")
+        }
+    })
+
+    return <box className="overlay">
+        {Overlay}
+    </box>;
+}

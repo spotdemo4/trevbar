@@ -2,6 +2,72 @@
 $theme_fg_color: "@theme_fg_color";
 $theme_bg_color: "@theme_bg_color";
 $theme_selected_bg_color: "@theme_selected_bg_color";
+$bg_color: rgba(0, 0, 0, 0.4);
+
+$xs_button_size: 16px;
+$sm_button_size: 18px;
+$md_button_size: 18px;
+$lg_button_size: 22px;
+
+@keyframes groove {
+    0% {
+        box-shadow: inset 1px 1px 0px 1px #33CCFF,
+            inset -1px 1px 0px 1px #22DDDD,
+            inset 1px -1px 0px 1px #11EEBB,
+            inset -1px -1px 0px 1px #00FF99;
+    }
+
+    25% {
+        box-shadow: inset 1px 1px 0px 1px #22DDDD,
+            inset -1px 1px 0px 1px #11EEBB,
+            inset 1px -1px 0px 1px #00FF99,
+            inset -1px -1px 0px 1px #33CCFF;
+    }
+
+    50% {
+        box-shadow: inset 1px 1px 0px 1px #11EEBB,
+            inset -1px 1px 0px 1px #00FF99,
+            inset 1px -1px 0px 1px #33CCFF,
+            inset -1px -1px 0px 1px #22DDDD;
+    }
+
+    75% {
+        box-shadow: inset 1px 1px 0px 1px #00FF99,
+            inset -1px 1px 0px 1px #33CCFF,
+            inset 1px -1px 0px 1px #22DDDD,
+            inset -1px -1px 0px 1px #11EEBB;
+    }
+
+    100% {
+        box-shadow: inset 1px 1px 0px 1px #33CCFF,
+            inset -1px 1px 0px 1px #22DDDD,
+            inset 1px -1px 0px 1px #11EEBB,
+            inset -1px -1px 0px 1px #00FF99;
+    }
+}
+
+@keyframes unhealthy {
+    0% {
+        box-shadow: inset 1px 1px 0px 1px #ED4337,
+            inset -1px 1px 0px 1px #F37C53,
+            inset 1px -1px 0px 1px #F9B570,
+            inset -1px -1px 0px 1px #FFEE8C;
+    }
+
+    50% {
+        box-shadow: inset 1px 1px 0px 1px #F9B570,
+            inset -1px 1px 0px 1px #FFEE8C,
+            inset 1px -1px 0px 1px #ED4337,
+            inset -1px -1px 0px 1px #F37C53;
+    }
+
+    100% {
+        box-shadow: inset 1px 1px 0px 1px #ED4337,
+            inset -1px 1px 0px 1px #F37C53,
+            inset 1px -1px 0px 1px #F9B570,
+            inset -1px -1px 0px 1px #FFEE8C;
+    }
+}
 
 window.Bar {
     background: transparent;
@@ -15,23 +81,42 @@ window.Bar {
         background: transparent;
     }
 
+    // icon.image {
+    //     background-color: red;
+    //     background-position: center;
+    //     background-size: cover;
+    //     border-radius: 50%;
+    // }
+
     .left {
         .workspaces {
-            > button {
-                background-color: rgba(0, 0, 0, 0.4);
+            >button {
+                background-color: $bg_color;
                 margin-left: 2.5px;
                 margin-right: 2.5px;
+                transition: box-shadow 250ms ease-in-out,
+                    background-color 250ms ease-in-out;
+                box-shadow: inset 0px 0px 0px 0px transparent;
 
-                &.focused {
-                    background-color: rgba(0, 0, 0, 0.6);
-                    border-top: 2px solid #{$theme_selected_bg_color};
+                &:hover {
+                    background-color: rgba(80, 80, 80, .4);
                 }
 
-                > box {
-                    > icon {
-                        margin-left: 5px;
-                        margin-right: 5px;
-                        font-size: 1.2em;
+                &.focused {
+                    box-shadow: inset 1px 1px 0px 1px #33CCFF,
+                        inset -1px 1px 0px 1px #22DDDD,
+                        inset 1px -1px 0px 1px #11EEBB,
+                        inset -1px -1px 0px 1px #00FF99;
+
+                    animation: groove 10s ease infinite;
+                    background-color: rgba(0, 0, 0, 0.6);
+                }
+
+                >box {
+                    >icon {
+                        padding-left: 5px;
+                        padding-right: 5px;
+                        font-size: $sm_button_size;
                     }
                 }
             }
@@ -40,13 +125,13 @@ window.Bar {
 
     .center {
         .title {
-            background-color: rgba(0, 0, 0, 0.4);
+            background-color: $bg_color;
             padding-left: 8px;
             padding-right: 8px;
             border-radius: 12px;
 
             icon {
-                font-size: 1.5em;
+                font-size: $lg_button_size;
                 margin-right: 7px;
             }
 
@@ -57,35 +142,73 @@ window.Bar {
     }
 
     .right {
-        > * {
+        >* {
             margin-left: 2.5px;
             margin-right: 2.5px;
 
-            > button {
-                background-color: rgba(0, 0, 0, 0.4);
+            >button {
+                background-color: $bg_color;
+                box-shadow: inset 0px 0px 0px 0px transparent;
+                transition: all 250ms ease-in-out;
 
-                icon {
-                    font-size: 1.1em;
+                &:hover {
+                    background-color: rgba(80, 80, 80, .4);
                 }
 
-                > label {
+                icon {
+                    font-size: $md_button_size;
+
+                    &.symbol {
+                        font-size: $xs_button_size;
+                    }
+                }
+
+                >label {
                     font-weight: bold;
                 }
 
-                > box {
-                    > * {
+                >box {
+                    >* {
                         margin-left: 2.5px;
                         margin-right: 2.5px;
                     }
                 }
             }
+        }
 
-            > .slider {
-                background-color: rgba(0, 0, 0, 0.4);
+        button.healthy {
+            box-shadow: inset 1px 1px 0px 1px #33CCFF,
+                inset -1px 1px 0px 1px #22DDDD,
+                inset 1px -1px 0px 1px #11EEBB,
+                inset -1px -1px 0px 1px #00FF99;
+
+            animation: groove 10s ease infinite;
+        }
+
+        button.unhealthy {
+            box-shadow: inset 1px 1px 0px 1px #ED4337,
+                inset -1px 1px 0px 1px #F37C53,
+                inset 1px -1px 0px 1px #F9B570,
+                inset -1px -1px 0px 1px #FFEE8C;
+
+            animation: unhealthy 10s ease infinite;
+        }
+
+        .audio-slider {
+            background-color: $bg_color;
+            border-radius: 6px;
+
+            button {
+                background-color: transparent;
+
+                &:hover {
+                    background-color: rgba(80, 80, 80, .4);
+                }
+            }
+
+            .slider {
                 padding-left: 5px;
                 padding-right: 14px;
-                border-top-right-radius: 6px;
-                border-bottom-right-radius: 6px;
                 transition: 250ms;
 
                 &.show {
@@ -96,13 +219,11 @@ window.Bar {
                     min-width: 0px;
                 }
             }
-
         }
 
         .tray {
             button {
                 border-radius: 0px;
-                background-color: rgba(0, 0, 0, 0.4);
 
                 &:first-child {
                     border-top-left-radius: 6px;
@@ -113,10 +234,136 @@ window.Bar {
                     border-top-right-radius: 6px;
                     border-bottom-right-radius: 6px;
                 }
+            }
+        }
 
-                icon {
-                    font-size: 1.1em;
+        #percentage {
+            button {
+                background-color: transparent;
+            }
+        }
+
+        #table {
+            box {
+                background-color: $bg_color;
+                padding-left: 6px;
+                padding-right: 6px;
+                transition: all 250ms ease-in-out;
+
+                &#block-0-0 {
+                    border-top-left-radius: 6px;
                 }
+
+                &#block-2-0 {
+                    border-top-right-radius: 6px;
+                }
+
+                &#block-0-2 {
+                    border-bottom-left-radius: 6px;
+                }
+
+                &#block-2-2 {
+                    border-bottom-right-radius: 6px;
+                }
+
+                // Good ones
+
+                &.left {
+                    box-shadow: inset 2px 0px 0px 0px #33CCFF;
+                }
+
+                &.top {
+                    box-shadow: inset 0px 2px 0px 0px #33CCFF;
+                }
+
+                &.right {
+                    box-shadow: inset -2px 0px 0px 0px #33CCFF;
+                }
+
+                &.bottom {
+                    box-shadow: inset 0px -2px 0px 0px #33CCFF;
+                }
+
+                &.bottom.left {
+                    box-shadow: inset 0px -2px 0px 0px #33CCFF,
+                        inset 2px 0px 0px 0px #33CCFF;
+                }
+
+                &.bottom.right {
+                    box-shadow: inset 0px -2px 0px 0px #33CCFF,
+                        inset -2px 0px 0px 0px #33CCFF;
+                }
+
+                &.top.right {
+                    box-shadow: inset 0px 2px 0px 0px #33CCFF,
+                        inset -2px 0px 0px 0px #33CCFF;
+                }
+
+                &.top.left {
+                    box-shadow: inset 0px 2px 0px 0px #33CCFF,
+                        inset 2px 0px 0px 0px #33CCFF;
+                }
+
+                // Medium ones
+
+                &.nbottom.left {
+                    box-shadow: inset 0px -2px 0px 0px #004d66,
+                        inset 2px 0px 0px 0px #33CCFF;
+                }
+
+                &.nbottom.right {
+                    box-shadow: inset 0px -2px 0px 0px #004d66,
+                        inset -2px 0px 0px 0px #33CCFF;
+                }
+
+                &.top.nright {
+                    box-shadow: inset 0px 2px 0px 0px #33CCFF,
+                        inset -2px 0px 0px 0px #004d66;
+                }
+
+                &.ntop.left {
+                    box-shadow: inset 0px 2px 0px 0px #004d66,
+                        inset 2px 0px 0px 0px #33CCFF;
+                }
+
+                // Bad ones
+
+                &.nleft {
+                    box-shadow: inset 2px 0px 0px 0px #004d66;
+                }
+
+                &.ntop {
+                    box-shadow: inset 0px 2px 0px 0px #004d66;
+                }
+
+                &.nright {
+                    box-shadow: inset -2px 0px 0px 0px #004d66;
+                }
+
+                &.nbottom {
+                    box-shadow: inset 0px -2px 0px 0px #004d66;
+                }
+
+                &.nbottom.nleft {
+                    box-shadow: inset 0px -2px 0px 0px #004d66,
+                        inset 2px 0px 0px 0px #004d66;
+                }
+
+                &.nbottom.nright {
+                    box-shadow: inset 0px -2px 0px 0px #004d66,
+                        inset -2px 0px 0px 0px #004d66;
+                }
+
+                &.ntop.nright {
+                    box-shadow: inset 0px 2px 0px 0px #004d66,
+                        inset -2px 0px 0px 0px #004d66;
+                }
+
+                &.ntop.nleft {
+                    box-shadow: inset 0px 2px 0px 0px #004d66,
+                        inset 2px 0px 0px 0px #004d66;
+                }
+
             }
         }
     }
