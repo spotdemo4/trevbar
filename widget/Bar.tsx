@@ -4,10 +4,10 @@ import { getHyprlandMonitor, sortByMaster, sleep, Bicon, doesBiconExist } from "
 import Hyprland from "gi://AstalHyprland"
 import Battery from "gi://AstalBattery"
 import Wp from "gi://AstalWp"
-import Network from "gi://AstalNetwork"
 import Tray from "gi://AstalTray"
 import GTop from "gi://GTop?version=2.0"
 import Soup from "gi://Soup?version=3.0"
+import { Subscribable } from "astal/binding"
 
 export default function Bar(gdkmonitor: Gdk.Monitor) {
     return <window
@@ -28,6 +28,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
             <box hexpand halign={Gtk.Align.END} className="right">
                 <MemoryUsage />
                 <CpuUsage />
+                <BatteryUsage />
                 <Syncthing />
                 <Tailscale />
                 <AudioSlider />
@@ -49,6 +50,7 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
                 return <button
                     onClicked={() => ws.focus()}
                     tooltipMarkup={`<b>Workspace ${ws.name}</b>`}
+                    cursor="pointer"
                     className={bind(hypr, "focusedWorkspace").as(fw => ws === fw ? "focused" : "")}
                 >
                     <Workspace workspace={ws} />
@@ -125,6 +127,7 @@ function SysTray(): JSX.Element {
             return <button
                 tooltipMarkup={bind(item, "tooltipMarkup")}
                 onDestroy={() => menu?.destroy()}
+                cursor="pointer"
                 onClickRelease={self => {
                     menu?.popup_at_widget(self, Gdk.Gravity.SOUTH, Gdk.Gravity.NORTH, null)
                 }}
@@ -152,6 +155,7 @@ function AudioSlider() {
     return <box className="audio-slider">
         <button
             onClickRelease={() => show.set(!show.get())}
+            cursor="pointer"
         >
             <icon icon={bind(speaker, "volumeIcon")} />
         </button>
@@ -165,44 +169,19 @@ function AudioSlider() {
     </box>
 }
 
-// function Wifi() {
-//     const { wifi } = Network.get_default()
+function BatteryUsage() {
+    const bat = Battery.get_default()
 
-//     return <icon
-//         visible={bind(wifi, "ssid").as(Boolean)}
-//         tooltipText={bind(wifi, "ssid").as(String)}
-//         className="Wifi"
-//         icon={bind(wifi, "iconName")}
-//     />
-// }
+    const percentage = bind(bat, "percentage").as((n) => n * 100);
 
-// function Media() {
-//     const mpris = Mpris.get_default()
+    const widget = <button
+        visible={bind(bat, "isPresent")}
+    >
+        <icon icon={bind(bat, "batteryIconName")} />
+    </button>
 
-//     return <box className="Media" visible={bind(mpris, "players").as(ps => ps.length > 0)}>
-//         {bind(mpris, "players").as(ps => ps[0] ? (
-//             <box>
-//                 <label
-//                     label={bind(ps[0], "title").as(() =>
-//                         `${ps[0].title} - ${ps[0].artist}`
-//                     )}
-//                 />
-//             </box>
-//         ) : (""))}
-//     </box>
-// }
-
-// function BatteryLevel() {
-//     const bat = Battery.get_default()
-
-//     return <box className="Battery"
-//         visible={bind(bat, "isPresent")}>
-//         <icon icon={bind(bat, "batteryIconName")} />
-//         <label label={bind(bat, "percentage").as(p =>
-//             `${Math.floor(p * 100)} %`
-//         )} />
-//     </box>
-// }
+    return Percentage(widget, percentage);
+}
 
 function Time(): JSX.Element {
     const time = Variable<string>("").poll(1000, () =>
@@ -214,11 +193,15 @@ function Time(): JSX.Element {
     let showDate = Variable<boolean>(false)
 
     return <box>
-        <button onClickRelease={() => showDate.set(!showDate.get())} onDestroy={() => {
-            time.drop();
-            date.drop()
-            showDate.drop()
-        }}>
+        <button
+            onClickRelease={() => showDate.set(!showDate.get())}
+            onDestroy={() => {
+                time.drop();
+                date.drop()
+                showDate.drop()
+            }}
+            cursor="pointer"
+        >
             {bind(showDate).as(show => show ?
                 <label label={date()} /> :
                 <label label={time()} />
@@ -254,8 +237,11 @@ function CpuUsage(): JSX.Element {
         return total;
     });
 
-    const button = <button onClickRelease={_ => execAsync('kitty btop')}>
-        <icon className="symbol" icon='processor-symbolic' />
+    const button = <button
+        onClickRelease={_ => execAsync('kitty btop')}
+        cursor="pointer"
+    >
+        <icon tooltip_text="CPU Usage" className="symbol" icon='processor-symbolic' />
     </button>
 
     return Percentage(button, cpuTotal);
@@ -273,8 +259,11 @@ function MemoryUsage(): JSX.Element {
         return Math.round((availableUsed / memory.total) * 100);
     });
 
-    const button = <button onClickRelease={_ => execAsync('kitty btop')}>
-        <icon className="symbol" icon='memory-symbolic' />
+    const button = <button
+        onClickRelease={_ => execAsync('kitty btop')}
+        cursor="pointer"
+    >
+        <icon tooltipText="Memory Usage" className="symbol" icon='memory-symbolic' />
     </button>
 
     return Percentage(button, memoryTotal)
@@ -292,7 +281,11 @@ function Tailscale(): JSX.Element {
     })
 
     return <box>
-        <button onClickRelease={_ => execAsync('xdg-open https://login.tailscale.com/admin/machines')} className={bind(isConnected).as(t => t ? "healthy" : "unhealthy")}>
+        <button
+            onClickRelease={_ => execAsync('xdg-open https://login.tailscale.com/admin/machines')}
+            className={bind(isConnected).as(t => t ? "healthy" : "unhealthy")}
+            cursor="pointer"
+        >
             <Bicon name="tailscale" tooltip="Tailscale" />
         </button>
     </box>
@@ -324,13 +317,17 @@ function Syncthing(): JSX.Element {
     })
 
     return <box>
-        <button onClickRelease={_ => execAsync("xdg-open http://localhost:8384/")} className={bind(isConnected).as(t => t ? "healthy" : "unhealthy")}>
+        <button
+            onClickRelease={_ => execAsync("xdg-open http://localhost:8384/")}
+            className={bind(isConnected).as(t => t ? "healthy" : "unhealthy")}
+            cursor="pointer"
+        >
             <Bicon name="syncthing" tooltip="Syncthing" />
         </button>
     </box>
 }
 
-function Percentage(widget: Gtk.Widget, num: Variable<number>) {
+function Percentage(widget: Gtk.Widget, num: Subscribable<number>) {
     const blocksCSS = new Map<string, Variable<string>>();
     const table = Gtk.Table.new(3, 3, true)
     table.name = "table";
@@ -364,7 +361,7 @@ function Percentage(widget: Gtk.Widget, num: Variable<number>) {
     Overlay.add_overlay(widget);
     Overlay.visible = true;
 
-    num.subscribe((num) => {
+    const calculate = (num: number) => {
         const outof12 = Math.floor(num / 8.333333333333334);
 
         // Bottom left 0-2
@@ -430,7 +427,13 @@ function Percentage(widget: Gtk.Widget, num: Variable<number>) {
         } else {
             blocksCSS.get("0-1")?.set("nleft")
         }
+    }
+
+    num.subscribe((num) => {
+        calculate(num);
     })
+
+    calculate(num.get());
 
     return <box className="overlay">
         {Overlay}

@@ -82,6 +82,7 @@ export function Bicon({ name, tooltip, symbolic = false }: { name: string, toolt
 
     // Hardcoded icons
     switch (lcname) {
+        case 'zen-beta':
         case 'zen-alpha':
             return Bicon({ name: "zen-white-symbolic", tooltip: tooltip });
         case 'jetbrains-datagrip':
@@ -106,32 +107,6 @@ export function Bicon({ name, tooltip, symbolic = false }: { name: string, toolt
             tooltip_text: tooltip ? tooltip : "",
         })
     }
-
-    // Try to find image icon
-    // const imagePath = SRC + "/icons/" + lcname + ".png";
-    // try {
-    //     const imageData = readFile(imagePath);
-    //     if (imageData) {
-    //         return new Widget.Icon({
-    //             className: 'image',
-    //             //css: `background-image: url('${imagePath}');`,
-    //             tooltip_text: capitalizeFirstLetter(name),
-    //         })
-    //     }
-    // } catch (_) { }
-
-    // Try to find symbolic icon
-    // if (name.includes("-symbolic")) {
-    //     const symbolicPath = SRC + "/icons/" + lcname + ".svg";
-    //     try {
-    //         const imageData = readFile(symbolicPath);
-    //         if (imageData) {
-    //             return new Widget.Icon({
-    //                 icon: symbolicPath
-    //             })
-    //         }
-    //     } catch (_) { }
-    // }
 
     return new Widget.Icon({
         icon: 'item-missing-symbolic'
