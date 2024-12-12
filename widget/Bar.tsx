@@ -174,6 +174,8 @@ function BatteryUsage() {
 
     const percentage = bind(bat, "percentage").as((n) => n * 100);
 
+    if (!bat.isPresent) return <box visible={false} />;
+
     const widget = <button
         visible={bind(bat, "isPresent")}
     >
