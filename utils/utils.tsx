@@ -89,6 +89,8 @@ export function Bicon({ name, tooltip, symbolic = false }: { name: string, toolt
             return Bicon({ name: "datagrip", tooltip: tooltip });
         case 'jetbrains-idea-ce':
             return Bicon({ name: "idea", tooltip: tooltip });
+        case 'onlyoffice desktop editors':
+            return Bicon({ name: "onlyoffice-desktopeditors", tooltip: tooltip });
         case 'vesktop':
             if (symbolic) {
                 return Bicon({ name: "discord-tray", tooltip: tooltip });
