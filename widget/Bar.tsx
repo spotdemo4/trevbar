@@ -118,22 +118,19 @@ function SysTray(): JSX.Element {
                 App.add_icons(item.iconThemePath)
             }
 
-            const menu = item.create_menu()
             const name =
                 item.title != "" ? item.title :
                     item.tooltipMarkup != "" ? item.tooltipMarkup :
                         item.id != "" ? item.id : ''
 
-            return <button
+            return <menubutton
                 tooltipMarkup={bind(item, "tooltipMarkup")}
-                onDestroy={() => menu?.destroy()}
-                cursor="pointer"
-                onClickRelease={self => {
-                    menu?.popup_at_widget(self, Gdk.Gravity.SOUTH, Gdk.Gravity.NORTH, null)
-                }}
+                usePopover={false}
+                actionGroup={bind(item, "actionGroup").as(ag => ["dbusmenu", ag])}
+                menuModel={bind(item, "menuModel")}
             >
                 {doesBiconExist(name) ? <Bicon name={name} tooltip={name} symbolic={true} /> : <icon gIcon={bind(item, "gicon")} />}
-            </button>
+            </menubutton>
         }))}
     </box>
 }
