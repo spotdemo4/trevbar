@@ -84,6 +84,7 @@ export function Bicon({ name, tooltip, symbolic = false }: { name: string, toolt
     switch (lcname) {
         case 'zen-beta':
         case 'zen-alpha':
+        case 'zen':
             return Bicon({ name: "zen-white-symbolic", tooltip: tooltip });
         case 'jetbrains-datagrip':
             return Bicon({ name: "datagrip", tooltip: tooltip });
