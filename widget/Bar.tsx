@@ -1,13 +1,14 @@
 import { App, Astal, Gtk, Gdk, Widget } from "astal/gtk3"
-import { Variable, GLib, bind, exec, execAsync, Binding } from "astal"
-import { getHyprlandMonitor, sortByMaster, sleep, Bicon, doesBiconExist } from "../utils/utils"
+import { Variable, GLib, bind, execAsync } from "astal"
+import { getHyprlandMonitor, sortByMaster, sleep, getIcon } from "../utils/utils"
 import Hyprland from "gi://AstalHyprland"
 import Battery from "gi://AstalBattery"
 import Wp from "gi://AstalWp"
 import Tray from "gi://AstalTray"
-import GTop from "gi://GTop?version=2.0"
-import Soup from "gi://Soup?version=3.0"
 import { Subscribable } from "astal/binding"
+import SystemInfo from "../utils/systemInfo"
+import Tailscale from "../utils/tailscale"
+import Syncthing from "../utils/syncthing"
 
 export default function Bar(gdkmonitor: Gdk.Monitor) {
     return <window
@@ -29,8 +30,8 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
                 <MemoryUsage />
                 <CpuUsage />
                 <BatteryUsage />
-                <Syncthing />
-                <Tailscale />
+                <SyncthingWidget />
+                <TailscaleWidget />
                 <AudioSlider />
                 <SysTray />
                 <Time />
@@ -79,12 +80,18 @@ function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
 
     hypr.connect('client-moved', (hy, _) => {
         clients.set(hy.get_clients().filter((client) => client.workspace.id === workspace.id))
-    })
+    });
 
     return <box>
         {bind(clients).as(clients => sortByMaster(clients)
             .map(client => {
-                return <Bicon name={client.initialClass} tooltip={client.title} />
+                let icon = getIcon(client.initialClass)
+
+                if (icon) {
+                    return <icon pixbuf={icon.load_icon()} tooltipText={client.title} />
+                }
+
+                return <icon tooltip_text={client.title} icon='item-missing-symbolic' />
             }))}
     </box>
 }
@@ -101,7 +108,12 @@ function Title(): JSX.Element {
                 return "";
             }
 
-            return <Bicon name={client.initialClass} />
+            let icon = getIcon(client.initialClass)
+            if (icon) {
+                return <icon pixbuf={icon?.load_icon()}></icon>
+            }
+
+            return '';
         })}
         {focused.as(client => (
             client && <label valign={Gtk.Align.CENTER} label={bind(client, "title").as(String)} />
@@ -123,13 +135,15 @@ function SysTray(): JSX.Element {
                     item.tooltipMarkup != "" ? item.tooltipMarkup :
                         item.id != "" ? item.id : ''
 
+            const icon = getIcon(name, true)
+
             return <menubutton
                 tooltipMarkup={bind(item, "tooltipMarkup")}
                 usePopover={false}
                 actionGroup={bind(item, "actionGroup").as(ag => ["dbusmenu", ag])}
                 menuModel={bind(item, "menuModel")}
             >
-                {doesBiconExist(name) ? <Bicon name={name} tooltip={name} symbolic={true} /> : <icon gIcon={bind(item, "gicon")} />}
+                {icon ? <icon pixbuf={icon.load_icon()} tooltipText={name} /> : <icon gIcon={bind(item, "gicon")} />}
             </menubutton>
         }))}
     </box>
@@ -210,31 +224,7 @@ function Time(): JSX.Element {
 }
 
 function CpuUsage(): JSX.Element {
-    const cpu = new GTop.glibtop_cpu();
-    GTop.glibtop_get_cpu(cpu);
-
-    let prevUser = cpu.user;
-    let prevIdle = cpu.idle;
-    let prevTotal = cpu.total;
-
-    const cpuTotal = Variable<number>(0).poll(2000, () => {
-        GTop.glibtop_get_cpu(cpu);
-        let userDelta = cpu.user - prevUser;
-        let idleDelta = cpu.idle - prevIdle;
-        let totalDelta = cpu.total - prevTotal;
-        let idleUsage = Math.round(100 * idleDelta / totalDelta);
-        let userUsage = Math.round(100 * userDelta / totalDelta);
-
-        let user = userUsage;
-        let system = 100 - userUsage - idleUsage;
-        let total = user + system;
-
-        prevUser = cpu.user;
-        prevIdle = cpu.idle;
-        prevTotal = cpu.total;
-
-        return total;
-    });
+    const system = SystemInfo.get_default()
 
     const button = <button
         onClickRelease={_ => execAsync('kitty btop')}
@@ -243,20 +233,11 @@ function CpuUsage(): JSX.Element {
         <icon tooltip_text="CPU Usage" className="symbol" icon='processor-symbolic' />
     </button>
 
-    return Percentage(button, cpuTotal);
+    return Percentage(button, bind(system, "cpu_usage"));
 }
 
 function MemoryUsage(): JSX.Element {
-    const memory = new GTop.glibtop_mem();
-
-    const memoryTotal = Variable<number>(0).poll(2000, () => {
-        GTop.glibtop_get_mem(memory);
-
-        // This is the wrong way of doing this https://unix.stackexchange.com/questions/499649/is-cached-memory-de-facto-free
-        const availableUsed = memory.used - memory.cached;
-
-        return Math.round((availableUsed / memory.total) * 100);
-    });
+    const system = SystemInfo.get_default()
 
     const button = <button
         onClickRelease={_ => execAsync('kitty btop')}
@@ -265,63 +246,37 @@ function MemoryUsage(): JSX.Element {
         <icon tooltipText="Memory Usage" className="symbol" icon='memory-symbolic' />
     </button>
 
-    return Percentage(button, memoryTotal)
+    return Percentage(button, bind(system, "mem_usage"))
 }
 
-function Tailscale(): JSX.Element {
-    const isConnected = Variable<boolean>(false).poll(2000, () => {
-        try {
-            exec('tailscale status')
+function TailscaleWidget(): JSX.Element {
+    const tailscale = Tailscale.get_default();
 
-            return true;
-        } catch (_) {
-            return false;
-        }
-    })
+    let icon = getIcon("tailscale");
 
     return <box>
         <button
             onClickRelease={_ => execAsync('xdg-open https://login.tailscale.com/admin/machines')}
-            className={bind(isConnected).as(t => t ? "healthy" : "unhealthy")}
+            className={bind(tailscale, "connected").as(t => t ? "healthy" : "unhealthy")}
             cursor="pointer"
         >
-            <Bicon name="tailscale" tooltip="Tailscale" />
+            {icon ? <icon pixbuf={icon.load_icon()} tooltipText="Tailscale" /> : <icon tooltip_text="Tailscale" icon='item-missing-symbolic' />}
         </button>
     </box>
 }
 
-function Syncthing(): JSX.Element {
-    const isConnected = Variable<boolean>(false).poll(2000, async () => {
-        let json: { status: string };
+function SyncthingWidget(): JSX.Element {
+    const syncthing = Syncthing.get_default()
 
-        try {
-            const session = new Soup.Session();
-            const message = new Soup.Message({
-                method: "GET",
-                uri: GLib.Uri.parse("http://localhost:8384/rest/noauth/health", GLib.UriFlags.NONE)
-            })
-
-            const response = session.send_and_read(message, null).toArray();
-            const responseData = new TextDecoder('utf-8').decode(response);
-            json = JSON.parse(responseData);
-        } catch (e) {
-            return false;
-        }
-
-        if (json.status === "OK") {
-            return true;
-        } else {
-            return false;
-        }
-    })
+    let icon = getIcon("syncthing")
 
     return <box>
         <button
             onClickRelease={_ => execAsync("xdg-open http://localhost:8384/")}
-            className={bind(isConnected).as(t => t ? "healthy" : "unhealthy")}
+            className={bind(syncthing, "connected").as(t => t ? "healthy" : "unhealthy")}
             cursor="pointer"
         >
-            <Bicon name="syncthing" tooltip="Syncthing" />
+            {icon ? <icon pixbuf={icon.load_icon()} tooltipText="Tailscale" /> : <icon tooltip_text="Syncthing" icon='item-missing-symbolic' />}
         </button>
     </box>
 }

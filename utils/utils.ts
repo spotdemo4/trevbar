@@ -1,6 +1,5 @@
-import { Astal, Gdk, Widget } from "astal/gtk3"
+import { Astal, Gdk, Gtk } from "astal/gtk3"
 import { timeout } from "astal/time"
-import { readFile } from "astal/file"
 import Hyprland from "gi://AstalHyprland"
 
 export function getHyprlandMonitor(monitor: Gdk.Monitor): Hyprland.Monitor | null {
@@ -61,21 +60,9 @@ export function sortByMaster(clients: Hyprland.Client[]) {
     });
 }
 
-export function doesBiconExist(name: string): boolean {
-    const bicon = Bicon({ name: name });
-
-    if (bicon.icon == "item-missing-symbolic") {
-        return false;
-    }
-
-    return true;
-}
-
-export function Bicon({ name, tooltip, symbolic = false }: { name: string, tooltip?: string, symbolic?: boolean }): Widget.Icon {
+export function getIcon(name: string, symbolic = false): Gtk.IconInfo | null {
     if (name == null || name == "") {
-        return new Widget.Icon({
-            icon: 'item-missing-symbolic'
-        })
+        return null;
     }
 
     const lcname = name.toLowerCase();
@@ -85,33 +72,28 @@ export function Bicon({ name, tooltip, symbolic = false }: { name: string, toolt
         case 'zen-beta':
         case 'zen-alpha':
         case 'zen':
-            return Bicon({ name: "zen-white-symbolic", tooltip: tooltip });
+            return getIcon("zen-white-symbolic");
         case 'jetbrains-datagrip':
-            return Bicon({ name: "datagrip", tooltip: tooltip });
+            return getIcon("datagrip");
         case 'jetbrains-idea-ce':
-            return Bicon({ name: "idea", tooltip: tooltip });
+            return getIcon("idea");
         case 'onlyoffice desktop editors':
-            return Bicon({ name: "onlyoffice-desktopeditors", tooltip: tooltip });
+            return getIcon("onlyoffice-desktopeditors");
         case 'vesktop':
             if (symbolic) {
-                return Bicon({ name: "discord-tray", tooltip: tooltip });
+                return getIcon("discord-tray");
             }
-            
-            return Bicon({ name: "discord", tooltip: tooltip });
+
+            return getIcon("discord");
         case 'syncthing':
-            return Bicon({ name: "si-syncthing-2", tooltip: tooltip });
+            return getIcon("si-syncthing-2")
     }
 
     // Try to find icon in iconpack
-    const iconPath = Astal.Icon.lookup_icon(lcname)?.get_filename()
-    if (iconPath) {
-        return new Widget.Icon({
-            icon: iconPath,
-            tooltip_text: tooltip ? tooltip : "",
-        })
+    const icon = Astal.Icon.lookup_icon(lcname)
+    if (icon) {
+        return icon
     }
 
-    return new Widget.Icon({
-        icon: 'item-missing-symbolic'
-    })
+    return null;
 }
