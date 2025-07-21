@@ -1,4 +1,4 @@
-import { createBinding, createComputed, createState, For, With } from 'ags';
+import { createBinding, createComputed, createState, For } from 'ags';
 import { Astal, Gdk, Gtk } from 'ags/gtk4';
 import app from 'ags/gtk4/app';
 import { execAsync } from 'ags/process';
@@ -74,14 +74,26 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 		(workspaces, clients, focusedWorkspace) => {
 			const desktops: Desktop[] = [];
 
+			if (!hyprMonitor) {
+				return [];
+			}
+
 			// Get desktop for each workspace within monitor
 			for (const workspace of workspaces) {
-				if (hyprMonitor && workspace.monitor.id != hyprMonitor.id) continue;
+				if (workspace.monitor == null) {
+					continue;
+				}
+
+				if (hyprMonitor.id != workspace.monitor.id) {
+					continue;
+				}
 
 				const desktop: Desktop = {
 					workspace: workspace,
-					clients: clients.filter((client) => client.workspace.id === workspace.id),
-					focused: workspace.id === focusedWorkspace.id
+					clients: clients
+						.filter((client) => client.workspace.id === workspace.id)
+						.sort((a, b) => a.x - b.x),
+					focused: focusedWorkspace ? workspace.id === focusedWorkspace.id : false
 				};
 				desktops.push(desktop);
 			}
@@ -123,23 +135,52 @@ function Workspace({ clients }: { clients: Hyprland.Client[] }) {
 
 function Title(): JSX.Element {
 	const hypr = Hyprland.get_default();
-	const client = createBinding(hypr, 'focusedClient');
+	const clients = createBinding(hypr, 'clients');
+	const focused = createBinding(hypr, 'focusedClient');
+
+	const focusedClient = createComputed([clients, focused], (clients, focused) => {
+		if (focused) {
+			return focused;
+		}
+
+		const client = hypr.get_focused_client();
+		if (client) {
+			return client;
+		}
+
+		return null;
+	});
+
+	const clientIcon = focusedClient.as((c) => {
+		if (!c) {
+			return 'item-missing-symbolic';
+		}
+
+		const icon = getIcon(c.initialClass, c.title);
+		return icon;
+	});
+
+	const clientTitle = focusedClient.as((c) => {
+		if (!c || !c.title) {
+			return 'n/a';
+		}
+
+		return c.title;
+	});
+
+	const clientAvailable = focusedClient.as((c) => {
+		if (!c || !c.title) {
+			return false;
+		}
+
+		return true;
+	});
 
 	return (
-		<With value={client}>
-			{(client) =>
-				client && (
-					<box class="title">
-						<image iconName={getIcon(client.initialClass, client.title)} />
-						<label
-							valign={Gtk.Align.CENTER}
-							label={client.title}
-							ellipsize={Pango.EllipsizeMode.END}
-						/>
-					</box>
-				)
-			}
-		</With>
+		<box class="title" visible={clientAvailable}>
+			<image iconName={clientIcon} />
+			<label valign={Gtk.Align.CENTER} label={clientTitle} ellipsize={Pango.EllipsizeMode.END} />
+		</box>
 	);
 }
 

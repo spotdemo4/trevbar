@@ -11,7 +11,7 @@
       inputs.nur.follows = "nur";
     };
     astal = {
-      url = "github:aylur/astal";
+      url = "github:spotdemo4/astal/fix-monitor-removed";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ags = {
