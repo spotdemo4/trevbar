@@ -1,0 +1,293 @@
+@use 'sass:map';
+@use 'sass:list';
+@use 'sass:string';
+
+// https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/theme/Adwaita/_colors-public.scss
+$theme_fg_color: '@theme_fg_color';
+$theme_bg_color: '@theme_bg_color';
+$theme_selected_bg_color: '@theme_selected_bg_color';
+$bg_color: rgba(0, 0, 0, 0.4);
+
+$xs_button_size: 16px;
+$sm_button_size: 18px;
+$md_button_size: 18px;
+$lg_button_size: 22px;
+
+$lblue: '#33CCFF';
+$dblue: '#186680';
+$lgreen: '#00FF99';
+$dgreen: '#1a724f';
+$lorange: '#FF6633';
+$lpink: '#FF0066';
+
+$lb-to-lg: ($lblue, $lgreen);
+$db-to-dg: ($dblue, $dgreen);
+$lo-to-lp: ($lorange, $lpink);
+
+@mixin shadow($top: '', $bottom: '', $left: '', $right: '') {
+	$bs: '';
+
+	@if $top != '' {
+		$bs: '#{$bs}inset 0px 2px 0px 0px #{$top}, ';
+	}
+
+	@if $bottom != '' {
+		$bs: '#{$bs}inset 0px -2px 0px 0px #{$bottom}, ';
+	}
+
+	@if $left != '' {
+		$bs: '#{$bs}inset 2px 0px 0px 0px #{$left}, ';
+	}
+
+	@if $right != '' {
+		$bs: '#{$bs}inset -2px 0px 0px 0px #{$right}, ';
+	}
+
+	$bs: string.slice($bs, 1, string.length($bs) - 2);
+	box-shadow: #{$bs};
+}
+
+@mixin animated-shadow(
+	$top: (
+		'',
+		''
+	),
+	$bottom: (
+		'',
+		''
+	),
+	$left: (
+		'',
+		''
+	),
+	$right: (
+		'',
+		''
+	)
+) {
+	@include shadow(list.nth($top, 1), list.nth($bottom, 1), list.nth($left, 1), list.nth($right, 1));
+
+	$test: string.unique-id();
+	animation: #{$test} 10s ease infinite;
+
+	@keyframes #{$test} {
+		0% {
+			@include shadow(
+				list.nth($top, 1),
+				list.nth($bottom, 1),
+				list.nth($left, 1),
+				list.nth($right, 1)
+			);
+		}
+
+		25% {
+			@include shadow(
+				list.nth($top, 1),
+				list.nth($bottom, 2),
+				list.nth($left, 1),
+				list.nth($right, 2)
+			);
+		}
+
+		50% {
+			@include shadow(
+				list.nth($top, 2),
+				list.nth($bottom, 2),
+				list.nth($left, 2),
+				list.nth($right, 2)
+			);
+		}
+
+		75% {
+			@include shadow(
+				list.nth($top, 2),
+				list.nth($bottom, 1),
+				list.nth($left, 2),
+				list.nth($right, 1)
+			);
+		}
+
+		100% {
+			@include shadow(
+				list.nth($top, 1),
+				list.nth($bottom, 1),
+				list.nth($left, 1),
+				list.nth($right, 1)
+			);
+		}
+	}
+}
+
+@mixin create-shadow($args...) {
+	$top: ('', '');
+	$bottom: ('', '');
+	$left: ('', '');
+	$right: ('', '');
+
+	@if list.index($args, 'top') {
+		$top: $lb-to-lg;
+	}
+
+	@if list.index($args, 'bottom') {
+		$bottom: $lb-to-lg;
+	}
+
+	@if list.index($args, 'left') {
+		$left: $lb-to-lg;
+	}
+
+	@if list.index($args, 'right') {
+		$right: $lb-to-lg;
+	}
+
+	@if list.index($args, 'ntop') {
+		$top: $db-to-dg;
+	}
+
+	@if list.index($args, 'nbottom') {
+		$bottom: $db-to-dg;
+	}
+
+	@if list.index($args, 'nleft') {
+		$left: $db-to-dg;
+	}
+
+	@if list.index($args, 'nright') {
+		$right: $db-to-dg;
+	}
+
+	@include animated-shadow($top, $bottom, $left, $right);
+}
+
+* {
+	outline: none;
+}
+
+window.Bar {
+	background: transparent;
+	font-weight: bold;
+
+	> centerbox {
+		padding-top: 3px;
+		padding-bottom: 3px;
+		padding-left: 3px;
+		padding-right: 3px;
+		background: transparent;
+	}
+
+	.left {
+		.workspaces {
+			> button {
+				background-color: $bg_color;
+				margin-left: 2.5px;
+				margin-right: 2.5px;
+				transition:
+					box-shadow 250ms ease-in-out,
+					background-color 250ms ease-in-out;
+				box-shadow: inset 0px 0px 0px 0px transparent;
+
+				&:hover {
+					background-color: rgba(80, 80, 80, 0.4);
+					@include animated-shadow($db-to-dg, $db-to-dg, $db-to-dg, $db-to-dg);
+				}
+
+				&.focused {
+					background-color: rgba(0, 0, 0, 0.6);
+					@include animated-shadow($lb-to-lg, $lb-to-lg, $lb-to-lg, $lb-to-lg);
+				}
+
+				> box {
+					> image {
+						padding-left: 2.5px;
+						padding-right: 2.5px;
+						font-size: $sm_button_size;
+					}
+				}
+			}
+		}
+	}
+
+	.center {
+		.title {
+			background-color: $bg_color;
+			padding-left: 8px;
+			padding-right: 8px;
+			border-radius: 6px;
+
+			image {
+				font-size: $md_button_size;
+				margin-right: 7px;
+			}
+
+			label {
+				font-size: 10pt;
+			}
+		}
+	}
+
+	.right {
+		> * {
+			margin-left: 2.5px;
+			margin-right: 2.5px;
+		}
+
+		overlay levelbar trough block {
+			border-radius: 0px;
+			&.filled {
+				border-top-left-radius: 6px;
+				border-bottom-left-radius: 6px;
+				background-color: rgb(49, 50, 68);
+			}
+			&.empty {
+				border-top-right-radius: 6px;
+				border-bottom-right-radius: 6px;
+				background-color: $bg_color;
+			}
+		}
+
+		button.menu,
+		.menu > button {
+			background-color: $bg_color;
+			box-shadow: inset 0px 0px 0px 0px transparent;
+			transition: all 250ms ease-in-out;
+
+			&:hover {
+				background-color: rgba(80, 80, 80, 0.4);
+			}
+
+			> box > * {
+				margin-left: 2px;
+				margin-right: 2px;
+			}
+
+			> image,
+			> box > image {
+				font-size: $md_button_size;
+			}
+
+			> label,
+			> box > label {
+				font-weight: normal;
+			}
+		}
+
+		button {
+			&.healthy {
+				@include animated-shadow($lb-to-lg, $lb-to-lg, $lb-to-lg, $lb-to-lg);
+			}
+			&.unhealthy {
+				@include animated-shadow($lo-to-lp, $lo-to-lp, $lo-to-lp, $lo-to-lp);
+			}
+			&.offline {
+				@include animated-shadow($db-to-dg, $db-to-dg, $db-to-dg, $db-to-dg);
+			}
+		}
+
+		.tray {
+			> * > button {
+				margin-left: 2.5px;
+				margin-right: 2.5px;
+			}
+		}
+	}
+}

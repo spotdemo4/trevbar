@@ -1,0 +1,11 @@
+# Build
+/node_modules/
+/@girs/
+
+# Nix
+/result*
+/.direnv/
+
+# Package Managers
+/package-lock.json
+/flake.lock

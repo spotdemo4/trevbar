@@ -1,0 +1,7 @@
+# Build
+/node_modules/
+/@girs/
+
+# Nix
+/result*
+/.direnv/
