@@ -74,7 +74,7 @@
       }:
         pkgs.buildNpmPackage (finalAttrs: {
           pname = "trevbar";
-          version = "0.0.6";
+          version = "0.0.7";
           src = ./.;
           nodejs = pkgs.nodejs_22;
 
