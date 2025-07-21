@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+bold=$(tput bold)
+normal=$(tput sgr0)
+git_branch=$(git rev-parse --abbrev-ref HEAD)
 git_root=$(git rev-parse --show-toplevel)
 git_version=$(git describe --tags --abbrev=0)
 version=${git_version#v}
@@ -27,7 +30,9 @@ cd "${git_root}"
 nix-update --flake --version "${next_version}" default
 git add flake.nix
 
+echo "committing"
 git commit -m "bump: v${version} -> v${next_version}"
-git push origin main
 git tag -a "v${next_version}" -m "bump: v${version} -> v${next_version}"
-git push origin "v${next_version}"
+
+echo "bump successful, please push:"
+echo "${bold}git push --atomic origin ${git_branch} \"v${next_version}\"${normal}"
