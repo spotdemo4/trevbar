@@ -11,6 +11,12 @@
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
 
+	// ESLint
+	"eslint.validate": ["javascript", "typescript", "typescriptreact"],
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	},
+
 	// Nix
 	"nix.enableLanguageServer": true,
 	"nix.serverPath": "nixd",
