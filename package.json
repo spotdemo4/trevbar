@@ -1,6 +1,6 @@
 {
 	"name": "trevbar",
-	"version": "0.0.7",
+	"version": "0.1.7",
 	"dependencies": {
 		"ags": "*"
 	},
