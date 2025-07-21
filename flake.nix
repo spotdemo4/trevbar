@@ -70,7 +70,7 @@
           pname = "trevbar";
           version = "0.0.1";
           src = ./.;
-          npmDepsHash = "";
+          nodejs = pkgs.nodejs_22;
 
           npmDeps = pkgs.importNpmLock {
             npmRoot = ./.;
@@ -124,8 +124,18 @@
           })
         ];
         packages = with pkgs; [
-          nodejs_24
+          git
+
+          # Build
+          nodejs_22
+
+          # Nix
+          nix-update
+          alejandra
+
+          # Actions
           renovate
+          action-validator
         ];
         shellHook = ''
           echo "nix flake check --accept-flake-config" > .git/hooks/pre-commit
@@ -144,9 +154,13 @@
           src = ./.;
           nativeBuildInputs = with pkgs; [
             alejandra
+            renovate
+            action-validator
           ];
           checkPhase = ''
             alejandra -c .
+            renovate-config-validator
+            action-validator .github/workflows/*
           '';
         };
       }
