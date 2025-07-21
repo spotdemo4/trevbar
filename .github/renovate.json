@@ -30,7 +30,7 @@
 		{
 			"matchManagers": ["npm"],
 			"postUpgradeTasks": {
-				"commands": ["npm install", "nix-update --flake --version=skip default"]
+				"commands": ["npm install"]
 			}
 		}
 	]

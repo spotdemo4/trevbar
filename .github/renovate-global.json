@@ -6,5 +6,5 @@
 	"requireConfig": "optional",
 	"platform": "github",
 	"repositories": ["spotdemo4/trevbar"],
-	"allowedCommands": ["npm install", "nix-update --flake --version=skip default"]
+	"allowedCommands": ["npm install"]
 }
