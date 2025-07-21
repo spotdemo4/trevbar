@@ -30,7 +30,7 @@ export default class Tailscale extends GObject.Object {
 					this.#connected = true;
 					this.notify('connected');
 				}
-			} catch (e) {
+			} catch {
 				if (this.#connected) {
 					this.#connected = false;
 					this.notify('connected');

@@ -18,7 +18,7 @@ export function getHyprlandMonitor(monitor: Gdk.Monitor): Hyprland.Monitor | nul
 
 	// Try to get hyprland monitor with cooordinates
 	const hyprlandMonitors = hypr.get_monitors();
-	for (let m of hyprlandMonitors) {
+	for (const m of hyprlandMonitors) {
 		const geometry = monitor.get_geometry();
 		if (
 			m.x === geometry.x &&
@@ -32,7 +32,7 @@ export function getHyprlandMonitor(monitor: Gdk.Monitor): Hyprland.Monitor | nul
 
 	// Try to get hyprland monitor with manufacturer and model
 	if (monitor.get_manufacturer() || monitor.get_model()) {
-		for (let m of hyprlandMonitors) {
+		for (const m of hyprlandMonitors) {
 			if (m.get_make() === monitor.get_manufacturer() && m.get_model() === monitor.get_model()) {
 				return m;
 			}
@@ -57,8 +57,8 @@ export function sortByMaster(clients: Hyprland.Client[]) {
 	});
 }
 
-export function getIcon(name: string, fallback?: string): string {
-	name = name.toLowerCase();
+export function getIcon(name?: string, fallback?: string): string {
+	name = name?.toLowerCase();
 	fallback = fallback?.toLowerCase();
 
 	// Hard-coded icons
@@ -79,7 +79,7 @@ export function getIcon(name: string, fallback?: string): string {
 			return getIcon('si-syncthing-2', fallback);
 	}
 
-	if (!iconTheme.has_icon(name)) {
+	if (!name || !iconTheme.has_icon(name)) {
 		if (fallback) {
 			return getIcon(fallback);
 		}

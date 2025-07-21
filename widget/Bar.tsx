@@ -1,4 +1,4 @@
-import { Accessor, createBinding, createComputed, createState, For, With } from 'ags';
+import { createBinding, createComputed, createState, For, With } from 'ags';
 import { Astal, Gdk, Gtk } from 'ags/gtk4';
 import app from 'ags/gtk4/app';
 import { execAsync } from 'ags/process';
@@ -7,6 +7,7 @@ import Battery from 'gi://AstalBattery';
 import Hyprland from 'gi://AstalHyprland';
 import Tray from 'gi://AstalTray';
 import AstalTray from 'gi://AstalTray';
+import Pango from 'gi://Pango?version=1.0';
 import Syncthing from '../utils/syncthing';
 import SystemInfo from '../utils/systemInfo';
 import Tailscale from '../utils/tailscale';
@@ -64,14 +65,14 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 	hypr.connect('client-removed', (_, address) => {
 		setClients((c) => c.filter((c) => c.address != address));
 	});
-	hypr.connect('client-moved', (hy, _) => {
-		setClients((_) => hy.get_clients());
+	hypr.connect('client-moved', (hy) => {
+		setClients(() => hy.get_clients());
 	});
 
 	const desktops = createComputed(
 		[workspaces, clients, createBinding(hypr, 'focusedWorkspace')],
 		(workspaces, clients, focusedWorkspace) => {
-			let desktops: Desktop[] = [];
+			const desktops: Desktop[] = [];
 
 			// Get desktop for each workspace within monitor
 			for (const workspace of workspaces) {
@@ -95,7 +96,7 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 	return (
 		<box class="workspaces">
 			<For each={desktops}>
-				{(desktop, _) => (
+				{(desktop) => (
 					<button
 						onClicked={() => desktop.workspace.focus()}
 						tooltipText={`Workspace ${desktop.workspace.name}`}
@@ -130,7 +131,11 @@ function Title(): JSX.Element {
 				client && (
 					<box class="title">
 						<image iconName={getIcon(client.initialClass, client.title)} />
-						<label valign={Gtk.Align.CENTER} label={client.title} />
+						<label
+							valign={Gtk.Align.CENTER}
+							label={client.title}
+							ellipsize={Pango.EllipsizeMode.END}
+						/>
 					</box>
 				)
 			}
@@ -162,7 +167,7 @@ function CpuUsage(): JSX.Element {
 	return (
 		<overlay
 			$={(self) => {
-				let button = self.get_last_child();
+				const button = self.get_last_child();
 				if (button) {
 					self.set_measure_overlay(button, true);
 				}
@@ -210,7 +215,7 @@ function RamUsage(): JSX.Element {
 	return (
 		<overlay
 			$={(self) => {
-				let button = self.get_last_child();
+				const button = self.get_last_child();
 				if (button) {
 					self.set_measure_overlay(button, true);
 				}
@@ -260,7 +265,7 @@ function BatteryUsage() {
 	return (
 		<overlay
 			$={(self) => {
-				let button = self.get_last_child();
+				const button = self.get_last_child();
 				if (button) {
 					self.set_measure_overlay(button, true);
 				}
@@ -299,7 +304,7 @@ function TailscaleWidget(): JSX.Element {
 	return (
 		<box>
 			<button
-				onClicked={(_) => execAsync('xdg-open https://login.tailscale.com/admin/machines')}
+				onClicked={() => execAsync('xdg-open https://login.tailscale.com/admin/machines')}
 				cursor={Gdk.Cursor.new_from_name('pointer', null)}
 				class={classNames}
 				tooltipText="Tailscale Status"
@@ -325,7 +330,7 @@ function SyncthingWidget(): JSX.Element {
 	return (
 		<box>
 			<button
-				onClicked={(_) => execAsync('xdg-open http://localhost:8384/')}
+				onClicked={() => execAsync('xdg-open http://localhost:8384/')}
 				cursor={Gdk.Cursor.new_from_name('pointer', null)}
 				class={classNames}
 				tooltipText="Syncthing Status"

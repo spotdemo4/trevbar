@@ -39,7 +39,7 @@ export default class Syncthing extends GObject.Object {
 				const response = Syncthing.soupSession.send_and_read(message, null).toArray();
 				const responseData = decoder.decode(response);
 				json = JSON.parse(responseData);
-			} catch (e) {
+			} catch {
 				if (this.#connected) {
 					this.#connected = false;
 					this.notify('connected');

@@ -61,6 +61,7 @@
 
     trevbar = forSystem (
       {
+        system,
         pkgs,
         extraPackages,
         ...
@@ -69,8 +70,16 @@
           pname = "trevbar";
           version = "0.0.1";
           src = ./.;
-          npmDepsHash = "sha256-sBG/Bdu/pzOyMlN6qCC4r2FDuZ8flyQL2SWJiWAk4zE=";
-          patchFlags = ["--log-level=verbose"];
+          npmDepsHash = "";
+
+          npmDeps = pkgs.importNpmLock {
+            npmRoot = ./.;
+            packageSourceOverrides = {
+              "node_modules/ags" = ags.packages.${system}.default;
+            };
+          };
+
+          npmConfigHook = pkgs.importNpmLock.npmConfigHook;
 
           nativeBuildInputs = with pkgs; [
             wrapGAppsHook
@@ -79,6 +88,8 @@
           ];
 
           buildInputs = extraPackages ++ [pkgs.gjs];
+
+          dontNpmBuild = true;
 
           installPhase = ''
             runHook preInstall
@@ -99,24 +110,6 @@
           };
         })
     );
-    # pkgs.stdenv.mkDerivation {
-    #   name = pname;
-    #   src = ./.;
-    #   nativeBuildInputs = with pkgs; [
-    #     wrapGAppsHook
-    #     gobject-introspection
-    #     ags.packages.${system}.default
-    #   ];
-    #   buildInputs = extraPackages ++ [pkgs.gjs];
-    #   installPhase = ''
-    #     runHook preInstall
-    #     mkdir -p $out/bin
-    #     mkdir -p $out/share
-    #     cp -r * $out/share
-    #     ags bundle ${entry} $out/bin/${pname} -d "SRC='$out/share'"
-    #     runHook postInstall
-    #   '';
-    # }
   in rec {
     devShells = forSystem ({
       pkgs,
@@ -134,6 +127,10 @@
           nodejs_24
           renovate
         ];
+        shellHook = ''
+          echo "nix flake check --accept-flake-config" > .git/hooks/pre-commit
+          chmod +x .git/hooks/pre-commit
+        '';
       };
     });
 
@@ -158,6 +155,7 @@
           doCheck = true;
           checkPhase = ''
             npx prettier --check .
+            npx eslint .
           '';
           installPhase = ''
             touch $out
