@@ -106,11 +106,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1753079654,
-        "narHash": "sha256-uSErLYSnZ+0ElDstxJsKcNn2q2mIul4MKZRi2W5+umw=",
+        "lastModified": 1753093654,
+        "narHash": "sha256-jMTTTZIhl6iF52sWqCh57/oM4JCUTYiLmUfMOz7JHc8=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "bdce6626a10a914339c1285d730c19e579460d29",
+        "rev": "f2a9d31269d762543980472a99372100289c5c43",
         "type": "github"
       },
       "original": {
@@ -124,31 +124,7 @@
         "ags": "ags",
         "astal": "astal",
         "nixpkgs": "nixpkgs",
-        "nur": "nur",
-        "trevnur": "trevnur"
-      }
-    },
-    "trevnur": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "nur": [
-          "nur"
-        ]
-      },
-      "locked": {
-        "lastModified": 1753088643,
-        "narHash": "sha256-cvMpKHcYXoCjXU2HtJY6JN65vEBisW2jeno9Ir2KxD8=",
-        "owner": "spotdemo4",
-        "repo": "nur",
-        "rev": "a6f57c01daf0a8f364feb0b3d911065163445c21",
-        "type": "github"
-      },
-      "original": {
-        "owner": "spotdemo4",
-        "repo": "nur",
-        "type": "github"
+        "nur": "nur"
       }
     }
   },

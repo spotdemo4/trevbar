@@ -5,11 +5,6 @@
       url = "github:nix-community/NUR";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    trevnur = {
-      url = "github:spotdemo4/nur";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nur.follows = "nur";
-    };
     astal = {
       url = "github:spotdemo4/astal/fix-monitor-removed";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -24,7 +19,6 @@
   outputs = {
     nixpkgs,
     nur,
-    trevnur,
     ags,
     ...
   }: let
@@ -131,7 +125,7 @@
         ];
         packages = with pkgs; [
           git
-          trevnur.packages."${system}".bumper
+          pkgs.nur.repos.trev.bumper
 
           # Build
           nodejs_22
