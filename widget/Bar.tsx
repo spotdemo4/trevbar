@@ -91,7 +91,7 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 				const desktop: Desktop = {
 					workspace: workspace,
 					clients: clients
-						.filter((client) => client.workspace.id === workspace.id)
+						.filter((client) => client.workspace && client.workspace.id === workspace.id)
 						.sort((a, b) => a.x - b.x),
 					focused: focusedWorkspace ? workspace.id === focusedWorkspace.id : false
 				};
