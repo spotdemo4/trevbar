@@ -1,6 +1,13 @@
 {
+  description = "Trevbar";
+
   inputs = {
+    systems.url = "systems";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    utils = {
+      url = "github:numtide/flake-utils";
+      inputs.systems.follows = "systems";
+    };
     nur = {
       url = "github:nix-community/NUR";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -18,55 +25,38 @@
 
   outputs = {
     nixpkgs,
+    utils,
     nur,
     ags,
     ...
-  }: let
-    build-systems = [
-      "x86_64-linux"
-      "aarch64-linux"
-      "aarch64-darwin"
-    ];
-    forSystem = f:
-      nixpkgs.lib.genAttrs build-systems (
-        system:
-          f rec {
-            inherit system;
+  }:
+    utils.lib.eachDefaultSystem (system: let
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [nur.overlays.default];
+      };
 
-            pkgs = import nixpkgs {
-              inherit system;
-              overlays = [nur.overlays.default];
-            };
+      astalPackages = with ags.packages.${system}; [
+        io
+        astal4
+        battery
+        bluetooth
+        hyprland
+        mpris
+        network
+        tray
+        wireplumber
+      ];
 
-            astalPackages = with ags.packages.${system}; [
-              io
-              astal4
-              battery
-              bluetooth
-              hyprland
-              mpris
-              network
-              tray
-              wireplumber
-            ];
+      extraPackages = with pkgs;
+        [
+          libgtop
+          libsoup_3
+        ]
+        ++ astalPackages;
 
-            extraPackages = with pkgs;
-              [
-                libgtop
-                libsoup_3
-              ]
-              ++ astalPackages;
-          }
-      );
-
-    trevbar = forSystem (
-      {
-        system,
-        pkgs,
-        extraPackages,
-        ...
-      }:
-        pkgs.buildNpmPackage (finalAttrs: {
+      trevbar = pkgs.buildNpmPackage (
+        finalAttrs: {
           pname = "trevbar";
           version = "0.1.7";
           src = ./.;
@@ -108,16 +98,10 @@
             license = pkgs.lib.licenses.mit;
             platforms = pkgs.lib.platforms.all;
           };
-        })
-    );
-  in rec {
-    devShells = forSystem ({
-      pkgs,
-      system,
-      extraPackages,
-      ...
-    }: {
-      default = pkgs.mkShell {
+        }
+      );
+    in rec {
+      devShells.default = pkgs.mkShell {
         buildInputs = [
           (ags.packages.${system}.default.override {
             inherit extraPackages;
@@ -138,49 +122,41 @@
           renovate
           action-validator
         ];
-        shellHook = ''
-          echo "nix flake check --accept-flake-config" > .git/hooks/pre-push
-          chmod +x .git/hooks/pre-push
-        '';
+        shellHook = pkgs.nur.repos.trev.shellhook.ref;
       };
-    });
 
-    checks = forSystem ({
-      system,
-      pkgs,
-      ...
-    }:
-      pkgs.nur.repos.trev.lib.mkChecks {
-        lint = {
-          src = ./.;
-          nativeBuildInputs = with pkgs; [
-            alejandra
-            renovate
-            action-validator
-          ];
-          checkPhase = ''
-            alejandra -c .
-            renovate-config-validator
-            action-validator .github/workflows/*
-          '';
+      checks =
+        pkgs.nur.repos.trev.lib.mkChecks {
+          lint = {
+            src = ./.;
+            nativeBuildInputs = with pkgs; [
+              alejandra
+              renovate
+              action-validator
+            ];
+            checkPhase = ''
+              alejandra -c .
+              renovate-config-validator
+              action-validator .github/workflows/*
+            '';
+          };
+        }
+        // {
+          build = trevbar.overrideAttrs {
+            doCheck = true;
+            checkPhase = ''
+              npx prettier --check .
+              npx eslint .
+            '';
+            installPhase = ''
+              touch $out
+            '';
+          };
+          shell = devShells.default;
         };
-      }
-      // {
-        build = trevbar."${system}".overrideAttrs {
-          doCheck = true;
-          checkPhase = ''
-            npx prettier --check .
-            npx eslint .
-          '';
-          installPhase = ''
-            touch $out
-          '';
-        };
-        shell = devShells."${system}".default;
-      });
 
-    packages = forSystem ({system, ...}: {
-      default = trevbar."${system}";
+      packages.default = trevbar;
+
+      formatter = pkgs.alejandra;
     });
-  };
 }

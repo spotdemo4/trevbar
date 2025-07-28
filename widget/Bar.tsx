@@ -199,9 +199,9 @@ function CpuUsage(): JSX.Element {
 	const [toggle, setToggle] = createState(false);
 	const label = createComputed([cpu, toggle], (cpu, toggle) => {
 		if (toggle) {
-			return `${cpu}%`;
-		} else {
 			return 'CPU';
+		} else {
+			return `${cpu}%`;
 		}
 	});
 
@@ -247,9 +247,9 @@ function RamUsage(): JSX.Element {
 	const [toggle, setToggle] = createState(false);
 	const label = createComputed([mem, toggle], (mem, toggle) => {
 		if (toggle) {
-			return `${mem}%`;
-		} else {
 			return 'RAM';
+		} else {
+			return `${mem}%`;
 		}
 	});
 
