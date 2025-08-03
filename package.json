@@ -1,6 +1,9 @@
 {
 	"name": "trevbar",
 	"version": "0.1.9",
+	"scripts": {
+		"gen": "ags types -u -d ."
+	},
 	"dependencies": {
 		"ags": "*"
 	},

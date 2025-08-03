@@ -297,9 +297,9 @@ function BatteryUsage() {
 	const [toggle, setToggle] = createState(false);
 	const label = createComputed([charge, toggle], (charge, toggle) => {
 		if (toggle) {
-			return `${charge * 100}%`;
+			return 'Battery';
 		} else {
-			return 'RAM';
+			return `${charge * 100}%`;
 		}
 	});
 

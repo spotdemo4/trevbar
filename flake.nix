@@ -1,6 +1,15 @@
 {
   description = "Trevbar";
 
+  nixConfig = {
+    extra-substituters = [
+      "https://trevnur.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "trevnur.cachix.org-1:hBd15IdszwT52aOxdKs5vNTbq36emvEeGqpb25Bkq6o="
+    ];
+  };
+
   inputs = {
     systems.url = "systems";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -54,8 +63,62 @@
           libsoup_3
         ]
         ++ astalPackages;
+    in rec {
+      devShells.default = pkgs.mkShell {
+        buildInputs = [
+          (ags.packages.${system}.default.override {
+            inherit extraPackages;
+          })
+        ];
+        packages = with pkgs; [
+          git
+          pkgs.nur.repos.trev.bumper
 
-      trevbar = pkgs.buildNpmPackage (
+          # Build
+          nodejs_22
+
+          # Nix
+          nix-update
+          alejandra
+
+          # Actions
+          action-validator
+          pkgs.nur.repos.trev.renovate
+        ];
+        shellHook = pkgs.nur.repos.trev.shellhook.ref;
+      };
+
+      checks =
+        pkgs.nur.repos.trev.lib.mkChecks {
+          lint = {
+            src = ./.;
+            nativeBuildInputs = with pkgs; [
+              alejandra
+              action-validator
+              pkgs.nur.repos.trev.renovate
+            ];
+            checkPhase = ''
+              alejandra -c .
+              renovate-config-validator
+              action-validator .github/workflows/*
+            '';
+          };
+        }
+        // {
+          build = packages.default.overrideAttrs {
+            doCheck = true;
+            checkPhase = ''
+              npx prettier --check .
+              npx eslint .
+            '';
+            installPhase = ''
+              touch $out
+            '';
+          };
+          shell = devShells.default;
+        };
+
+      packages.default = pkgs.buildNpmPackage (
         finalAttrs: {
           pname = "trevbar";
           version = "0.1.9";
@@ -100,62 +163,6 @@
           };
         }
       );
-    in rec {
-      devShells.default = pkgs.mkShell {
-        buildInputs = [
-          (ags.packages.${system}.default.override {
-            inherit extraPackages;
-          })
-        ];
-        packages = with pkgs; [
-          git
-          pkgs.nur.repos.trev.bumper
-
-          # Build
-          nodejs_22
-
-          # Nix
-          nix-update
-          alejandra
-
-          # Actions
-          renovate
-          action-validator
-        ];
-        shellHook = pkgs.nur.repos.trev.shellhook.ref;
-      };
-
-      checks =
-        pkgs.nur.repos.trev.lib.mkChecks {
-          lint = {
-            src = ./.;
-            nativeBuildInputs = with pkgs; [
-              alejandra
-              renovate
-              action-validator
-            ];
-            checkPhase = ''
-              alejandra -c .
-              renovate-config-validator
-              action-validator .github/workflows/*
-            '';
-          };
-        }
-        // {
-          build = trevbar.overrideAttrs {
-            doCheck = true;
-            checkPhase = ''
-              npx prettier --check .
-              npx eslint .
-            '';
-            installPhase = ''
-              touch $out
-            '';
-          };
-          shell = devShells.default;
-        };
-
-      packages.default = trevbar;
 
       formatter = pkgs.alejandra;
     });
