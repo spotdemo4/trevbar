@@ -3,10 +3,10 @@
 
   nixConfig = {
     extra-substituters = [
-      "https://trevnur.cachix.org"
+      "https://cache.trev.zip/nur"
     ];
     extra-trusted-public-keys = [
-      "trevnur.cachix.org-1:hBd15IdszwT52aOxdKs5vNTbq36emvEeGqpb25Bkq6o="
+      "nur:70xGHUW1+1b8FqBchldaunN//pZNVo6FKuPL4U/n844="
     ];
   };
 
@@ -22,7 +22,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     astal = {
-      url = "github:spotdemo4/astal/fix-monitor-removed";
+      url = "github:aylur/astal";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ags = {
@@ -123,7 +123,7 @@
           pname = "trevbar";
           version = "0.1.10";
           src = ./.;
-          nodejs = pkgs.nodejs_22;
+          nodejs = pkgs.nodejs_24;
 
           npmDeps = pkgs.importNpmLock {
             npmRoot = ./.;
@@ -135,7 +135,7 @@
           npmConfigHook = pkgs.importNpmLock.npmConfigHook;
 
           nativeBuildInputs = with pkgs; [
-            wrapGAppsHook
+            wrapGAppsHook3
             gobject-introspection
             ags.packages.${system}.default
           ];

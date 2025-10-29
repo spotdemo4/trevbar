@@ -30,16 +30,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1753099410,
-        "narHash": "sha256-5YhKP2ibNfxCcJLa3FbnQ2hFsJuoYIEunmU+t93iaX8=",
-        "owner": "spotdemo4",
+        "lastModified": 1761246688,
+        "narHash": "sha256-U2r3/DKgr9Fq1yqWLCbKMSqRf8a1JctD0kj/ftBClsg=",
+        "owner": "aylur",
         "repo": "astal",
-        "rev": "ad675c4a211a9f9886bb0ee1738398cc76b5ebf9",
+        "rev": "189bf73016c26d7d32729a913d6436cd7b1a0885",
         "type": "github"
       },
       "original": {
-        "owner": "spotdemo4",
-        "ref": "fix-monitor-removed",
+        "owner": "aylur",
         "repo": "astal",
         "type": "github"
       }
