@@ -145,7 +145,7 @@
 
         packages.default = pkgs.buildNpmPackage (finalAttrs: {
           pname = "trevbar";
-          version = "0.1.11";
+          version = "0.1.12";
           src = builtins.path {
             name = "root";
             path = ./.;
