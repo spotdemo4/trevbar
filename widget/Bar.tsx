@@ -72,38 +72,37 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 	const focusedWorkspace = createBinding(hypr, "focusedWorkspace");
 
 	const desktops = createComputed(() => {
-			const desktops: Desktop[] = [];
+		const desktops: Desktop[] = [];
 
-			if (!hyprMonitor) {
-				return [];
+		if (!hyprMonitor) {
+			return [];
+		}
+
+		// Get desktop for each workspace within monitor
+		for (const workspace of workspaces()) {
+			if (workspace.monitor == null) {
+				continue;
 			}
 
-			// Get desktop for each workspace within monitor
-			for (const workspace of workspaces()) {
-				if (workspace.monitor == null) {
-					continue;
-				}
-
-				if (hyprMonitor.id != workspace.monitor.id) {
-					continue;
-				}
-
-				const desktop: Desktop = {
-					workspace: workspace,
-					clients: clients()
-						.filter((client) => client.workspace && client.workspace.id === workspace.id)
-						.sort((a, b) => a.x - b.x),
-					focused: focusedWorkspace() ? workspace.id === focusedWorkspace().id : false,
-				};
-				desktops.push(desktop);
+			if (hyprMonitor.id != workspace.monitor.id) {
+				continue;
 			}
 
-			// Sort
-			desktops.sort((a, b) => a.workspace.id - b.workspace.id);
+			const desktop: Desktop = {
+				workspace: workspace,
+				clients: clients()
+					.filter((client) => client.workspace && client.workspace.id === workspace.id)
+					.sort((a, b) => a.x - b.x),
+				focused: focusedWorkspace() ? workspace.id === focusedWorkspace().id : false,
+			};
+			desktops.push(desktop);
+		}
 
-			return desktops;
-		},
-	);
+		// Sort
+		desktops.sort((a, b) => a.workspace.id - b.workspace.id);
+
+		return desktops;
+	});
 
 	return (
 		<box class="workspaces">
