@@ -2,17 +2,27 @@ name: release
 
 on:
   push:
-    tags: ['v*']
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: release
 
 permissions:
-  contents: read
+  packages: write
 
 jobs:
-  tag:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+  release:
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - name: Checkout
+        id: checkout
+        uses: spotdemo4/better-checkout@eaec73409dbe842ad8446ee818976878b0e9108d # v0.0.2
+        with:
+          app-id: ${{ vars.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
 
-      - run: git push origin "${{ github.ref_name }}:latest" --force
+      - name: Release
+        uses: spotdemo4/nix-flake-release@705a37cf5f4a18304b19c853cf9abc575a71a757 # v0.6.0
+        with:
+          github_token: ${{ steps.checkout.outputs.token }}

@@ -1,24 +1,35 @@
 {
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"editor.formatOnSave": true,
+	"files.associations": {
+		"renovate.json": "jsonc",
+		".envrc.project": "shellscript"
+	},
 
-	// Prettier
-	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	// prettier
 	"[javascript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
 	"[typescript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
 
-	// ESLint
+	// eslint
 	"eslint.validate": ["javascript", "typescript", "typescriptreact"],
 	"editor.codeActionsOnSave": {
 		"source.fixAll.eslint": "explicit"
 	},
 
-	// Nix
+	// nix
 	"nix.enableLanguageServer": true,
 	"nix.serverPath": "nixd",
-	"nix.formatterPath": "alejandra"
+	"[nix]": {
+		"editor.defaultFormatter": "jnoortheen.nix-ide"
+	},
+
+	// actions
+	"editor.defaultFormatter": "esbenp.prettier-vscode"
 }

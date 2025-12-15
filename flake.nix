@@ -1,5 +1,5 @@
 {
-  description = "Trevbar";
+  description = "trevbar";
 
   nixConfig = {
     extra-substituters = [
@@ -11,14 +11,11 @@
   };
 
   inputs = {
-    systems.url = "systems";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    utils = {
-      url = "github:numtide/flake-utils";
+    systems.url = "github:nix-systems/default";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    trev = {
+      url = "github:spotdemo4/nur";
       inputs.systems.follows = "systems";
-    };
-    nur = {
-      url = "github:nix-community/NUR";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     astal = {
@@ -32,98 +29,128 @@
     };
   };
 
-  outputs = {
-    nixpkgs,
-    utils,
-    nur,
-    ags,
-    ...
-  }:
-    utils.lib.eachDefaultSystem (system: let
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [nur.overlays.default];
-      };
+  outputs =
+    {
+      nixpkgs,
+      trev,
+      ags,
+      ...
+    }:
+    trev.libs.mkFlake (
+      system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [
+            trev.overlays.packages
+            trev.overlays.libs
+          ];
+        };
 
-      astalPackages = with ags.packages.${system}; [
-        io
-        astal4
-        battery
-        bluetooth
-        hyprland
-        mpris
-        network
-        tray
-        wireplumber
-      ];
-
-      extraPackages = with pkgs;
-        [
-          libgtop
-          libsoup_3
-        ]
-        ++ astalPackages;
-    in rec {
-      devShells.default = pkgs.mkShell {
-        buildInputs = [
-          (ags.packages.${system}.default.override {
-            inherit extraPackages;
-          })
+        astalPackages = with ags.packages.${system}; [
+          io
+          astal4
+          battery
+          bluetooth
+          hyprland
+          mpris
+          network
+          tray
+          wireplumber
         ];
-        packages = with pkgs; [
-          git
-          pkgs.nur.repos.trev.bumper
 
-          # Build
-          nodejs_22
+        extraPackages =
+          with pkgs;
+          [
+            libgtop
+            libsoup_3
+          ]
+          ++ astalPackages;
 
-          # Nix
-          nix-update
-          alejandra
-
-          # Actions
-          action-validator
-          pkgs.nur.repos.trev.renovate
-        ];
-        shellHook = pkgs.nur.repos.trev.shellhook.ref;
-      };
-
-      checks =
-        pkgs.nur.repos.trev.lib.mkChecks {
-          lint = {
-            src = ./.;
-            nativeBuildInputs = with pkgs; [
-              alejandra
-              action-validator
-              pkgs.nur.repos.trev.renovate
+        node = pkgs.nodejs_24;
+      in
+      rec {
+        devShells = {
+          default = pkgs.mkShell {
+            buildInputs = [
+              (ags.packages.${system}.default.override {
+                inherit extraPackages;
+              })
             ];
-            checkPhase = ''
-              alejandra -c .
-              renovate-config-validator
-              action-validator .github/workflows/*
-            '';
+            packages = with pkgs; [
+              node
+
+              # util
+              bumper
+
+              # nix
+              nixfmt
+            ];
+            shellHook = pkgs.shellhook.ref;
           };
-        }
-        // {
-          build = packages.default.overrideAttrs {
-            doCheck = true;
-            checkPhase = ''
+
+          update = pkgs.mkShell {
+            packages = with pkgs; [
+              renovate
+            ];
+          };
+
+          vulnerable = pkgs.mkShell {
+            packages = with pkgs; [
+              node
+
+              # nix
+              flake-checker
+              nix-scan
+
+              # actions
+              octoscan
+            ];
+          };
+        };
+
+        checks = pkgs.lib.mkChecks {
+          trevbar = {
+            src = packages.default;
+            script = ''
               npx prettier --check .
               npx eslint .
             '';
-            installPhase = ''
-              touch $out
+          };
+
+          nix = {
+            src = ./.;
+            deps = with pkgs; [
+              nixfmt-tree
+            ];
+            script = ''
+              treefmt --ci
             '';
           };
-          shell = devShells.default;
+
+          actions = {
+            src = ./.;
+            deps = with pkgs; [
+              action-validator
+              octoscan
+              renovate
+            ];
+            script = ''
+              action-validator .github/**/*.yaml
+              octoscan scan .github
+              renovate-config-validator .github/renovate.json
+            '';
+          };
         };
 
-      packages.default = pkgs.buildNpmPackage (
-        finalAttrs: {
+        packages.default = pkgs.buildNpmPackage (finalAttrs: {
           pname = "trevbar";
           version = "0.1.11";
-          src = ./.;
-          nodejs = pkgs.nodejs_24;
+          src = builtins.path {
+            name = "root";
+            path = ./.;
+          };
+          nodejs = node;
 
           npmDeps = pkgs.importNpmLock {
             npmRoot = ./.;
@@ -140,8 +167,9 @@
             ags.packages.${system}.default
           ];
 
-          buildInputs = extraPackages ++ [pkgs.gjs];
+          buildInputs = extraPackages ++ [ pkgs.gjs ];
 
+          doCheck = false;
           dontNpmBuild = true;
 
           installPhase = ''
@@ -156,14 +184,16 @@
           '';
 
           meta = {
-            description = "Trev's AGS bar";
+            description = "Trev's status bar";
+            mainProgram = "trevbar";
             homepage = "https://github.com/spotdemo4/trevbar";
+            changelog = "https://github.com/spotdemo4/trevbar/releases/tag/v${finalAttrs.version}";
             license = pkgs.lib.licenses.mit;
             platforms = pkgs.lib.platforms.all;
           };
-        }
-      );
+        });
 
-      formatter = pkgs.alejandra;
-    });
+        formatter = pkgs.nixfmt-tree;
+      }
+    );
 }

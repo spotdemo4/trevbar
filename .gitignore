@@ -1,7 +1,11 @@
-# Build
+/.env
+/.envrc
+/docker-compose*
+
+# node
 /node_modules/
 /@girs/
 
-# Nix
+# nix
 /result*
 /.direnv/

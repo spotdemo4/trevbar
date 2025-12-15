@@ -6,7 +6,7 @@ import { createPoll } from 'ags/time';
 import Battery from 'gi://AstalBattery';
 import Hyprland from 'gi://AstalHyprland';
 import Tray from 'gi://AstalTray';
-import AstalTray from 'gi://AstalTray';
+import type AstalTray from 'gi://AstalTray';
 import Pango from 'gi://Pango?version=1.0';
 import Syncthing from '../utils/syncthing';
 import SystemInfo from '../utils/systemInfo';

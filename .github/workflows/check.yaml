@@ -3,7 +3,12 @@ name: check
 on:
   pull_request:
     branches: ['main']
+  push:
+    branches: ['main']
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
 
 permissions:
   contents: read
@@ -12,8 +17,10 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-      - uses: DeterminateSystems/nix-installer-action@90bb610b90bf290cad97484ba341453bd1cbefea # v19
-      - uses: DeterminateSystems/magic-nix-cache-action@565684385bcd71bad329742eefe8d12f2e765b39 # v13
+      - name: Initialize
+        id: init
+        uses: spotdemo4/nix-init@e2fa614def25ff8e1ba97f43825b1dc198792423 # v1.8.13
 
-      - run: nix flake check -L --accept-flake-config
+      - name: Run checks
+        if: ${{ steps.init.outputs.duplicate != 'true' }}
+        run: nix flake check

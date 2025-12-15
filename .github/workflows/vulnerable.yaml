@@ -1,0 +1,48 @@
+name: vulnerable
+
+on:
+  schedule:
+    - cron: '0 9 * * 0' # every Sunday at 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize
+        uses: spotdemo4/nix-init@e2fa614def25ff8e1ba97f43825b1dc198792423 # v1.8.13
+        with:
+          shell: vulnerable
+
+      - name: Run npm audit
+        run: npm audit --audit-level moderate
+
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize
+        uses: spotdemo4/nix-init@e2fa614def25ff8e1ba97f43825b1dc198792423 # v1.8.13
+        with:
+          shell: vulnerable
+
+      - name: Run flake-checker
+        run: flake-checker -f
+
+      - name: Run nix-scan
+        run: nix-scan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize
+        uses: spotdemo4/nix-init@e2fa614def25ff8e1ba97f43825b1dc198792423 # v1.8.13
+        with:
+          shell: vulnerable
+
+      - name: Run octoscan
+        run: octoscan scan .github

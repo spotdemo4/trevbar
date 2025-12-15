@@ -1,6 +1,16 @@
 {
-	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
-	"extends": ["config:recommended", "group:allDigest"],
+	"$schema": "https://docs.renovatebot.com/renovate-global-schema.json",
+
+	// self-hosted
+	"onboarding": false,
+	"requireConfig": "ignored",
+	"platform": "github",
+	"repositories": ["spotdemo4/trevbar"],
+
+	// repository
+	"extends": ["config:recommended"],
+	"branchPrefix": "renovate/",
+	"dependencyDashboardTitle": "Dependency Dashboard",
 	"lockFileMaintenance": {
 		"enabled": true,
 		"automerge": true
@@ -15,7 +25,6 @@
 		},
 		{
 			"matchManagers": ["github-actions"],
-			"matchPackageNames": ["*"],
 			"groupName": "GitHub Actions"
 		}
 	]
