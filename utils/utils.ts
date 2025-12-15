@@ -61,12 +61,14 @@ export function getIcon(name?: string, fallback?: string): string {
 	name = name?.toLowerCase();
 	fallback = fallback?.toLowerCase();
 
+	console.log(name);
+
 	// Hard-coded icons
 	switch (name) {
 		case "zen-beta":
 		case "zen-alpha":
 		case "zen":
-			return getIcon("zen-white-symbolic", fallback);
+			return getIcon("zen-white", fallback);
 		case "jetbrains-datagrip":
 			return getIcon("datagrip", fallback);
 		case "jetbrains-idea-ce":

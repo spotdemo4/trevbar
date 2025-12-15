@@ -69,9 +69,9 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 		setClients(() => hy.get_clients());
 	});
 
-	const desktops = createComputed(
-		[workspaces, clients, createBinding(hypr, "focusedWorkspace")],
-		(workspaces, clients, focusedWorkspace) => {
+	const focusedWorkspace = createBinding(hypr, "focusedWorkspace");
+
+	const desktops = createComputed(() => {
 			const desktops: Desktop[] = [];
 
 			if (!hyprMonitor) {
@@ -79,7 +79,7 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 			}
 
 			// Get desktop for each workspace within monitor
-			for (const workspace of workspaces) {
+			for (const workspace of workspaces()) {
 				if (workspace.monitor == null) {
 					continue;
 				}
@@ -90,10 +90,10 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 
 				const desktop: Desktop = {
 					workspace: workspace,
-					clients: clients
+					clients: clients()
 						.filter((client) => client.workspace && client.workspace.id === workspace.id)
 						.sort((a, b) => a.x - b.x),
-					focused: focusedWorkspace ? workspace.id === focusedWorkspace.id : false,
+					focused: focusedWorkspace() ? workspace.id === focusedWorkspace().id : false,
 				};
 				desktops.push(desktop);
 			}
@@ -135,12 +135,11 @@ function Workspace({ clients }: { clients: Hyprland.Client[] }) {
 
 function Title(): JSX.Element {
 	const hypr = Hyprland.get_default();
-	const clients = createBinding(hypr, "clients");
 	const focused = createBinding(hypr, "focusedClient");
 
-	const focusedClient = createComputed([clients, focused], (clients, focused) => {
-		if (focused) {
-			return focused;
+	const focusedClient = createComputed(() => {
+		if (focused()) {
+			return focused();
 		}
 
 		const client = hypr.get_focused_client();
@@ -197,11 +196,11 @@ function CpuUsage(): JSX.Element {
 	});
 
 	const [toggle, setToggle] = createState(false);
-	const label = createComputed([cpu, toggle], (cpu, toggle) => {
-		if (toggle) {
+	const label = createComputed(() => {
+		if (toggle()) {
 			return "CPU";
 		} else {
-			return `${cpu}%`;
+			return `${Math.round(cpu())}%`;
 		}
 	});
 
@@ -219,7 +218,7 @@ function CpuUsage(): JSX.Element {
 				$type="overlay"
 				halign={Gtk.Align.CENTER}
 				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				onClicked={() => setToggle(!toggle.get())}
+				onClicked={() => setToggle(!toggle.peek())}
 				class={classNames}
 				tooltipText="CPU Usage"
 			>
@@ -245,11 +244,11 @@ function RamUsage(): JSX.Element {
 	});
 
 	const [toggle, setToggle] = createState(false);
-	const label = createComputed([mem, toggle], (mem, toggle) => {
-		if (toggle) {
+	const label = createComputed(() => {
+		if (toggle()) {
 			return "RAM";
 		} else {
-			return `${mem}%`;
+			return `${Math.round(mem())}%`;
 		}
 	});
 
@@ -267,7 +266,7 @@ function RamUsage(): JSX.Element {
 				$type="overlay"
 				halign={Gtk.Align.CENTER}
 				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				onClicked={() => setToggle(!toggle.get())}
+				onClicked={() => setToggle(!toggle.peek())}
 				class={classNames}
 				tooltipText="RAM Usage"
 			>
@@ -295,11 +294,11 @@ function BatteryUsage() {
 	});
 
 	const [toggle, setToggle] = createState(false);
-	const label = createComputed([charge, toggle], (charge, toggle) => {
-		if (toggle) {
+	const label = createComputed(() => {
+		if (toggle()) {
 			return "Battery";
 		} else {
-			return `${charge * 100}%`;
+			return `${Math.round(charge() * 100)}%`;
 		}
 	});
 
@@ -317,7 +316,7 @@ function BatteryUsage() {
 				$type="overlay"
 				halign={Gtk.Align.CENTER}
 				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				onClicked={() => setToggle(!toggle.get())}
+				onClicked={() => setToggle(!toggle.peek())}
 				class={classNames}
 				tooltipText="Battery Usage"
 			>
