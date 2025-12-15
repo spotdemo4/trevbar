@@ -1,6 +1,6 @@
 {
 	"name": "trevbar",
-	"version": "0.1.12",
+	"version": "0.1.13",
 	"type": "module",
 	"scripts": {
 		"gen": "ags types -u -d . && prettier --write tsconfig.json",
