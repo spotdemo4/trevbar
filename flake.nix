@@ -114,7 +114,7 @@
             src = packages.default;
             script = ''
               npx prettier --check .
-              npx eslint .
+              npx eslint --flag unstable_native_nodejs_ts_config .
             '';
           };
 

@@ -3,7 +3,7 @@
 	"version": "0.1.11",
 	"type": "module",
 	"scripts": {
-		"gen": "ags types -u -d ."
+		"gen": "ags types -u -d . && prettier --write tsconfig.json"
 	},
 	"dependencies": {
 		"ags": "*"
