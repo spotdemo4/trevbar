@@ -1,11 +1,11 @@
-@use 'sass:map';
-@use 'sass:list';
-@use 'sass:string';
+@use "sass:map";
+@use "sass:list";
+@use "sass:string";
 
 // https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/theme/Adwaita/_colors-public.scss
-$theme_fg_color: '@theme_fg_color';
-$theme_bg_color: '@theme_bg_color';
-$theme_selected_bg_color: '@theme_selected_bg_color';
+$theme_fg_color: "@theme_fg_color";
+$theme_bg_color: "@theme_bg_color";
+$theme_selected_bg_color: "@theme_selected_bg_color";
 $bg_color: rgba(0, 0, 0, 0.4);
 
 $xs_button_size: 16px;
@@ -13,34 +13,34 @@ $sm_button_size: 18px;
 $md_button_size: 18px;
 $lg_button_size: 22px;
 
-$lblue: '#33CCFF';
-$dblue: '#186680';
-$lgreen: '#00FF99';
-$dgreen: '#1a724f';
-$lorange: '#FF6633';
-$lpink: '#FF0066';
+$lblue: "#33CCFF";
+$dblue: "#186680";
+$lgreen: "#00FF99";
+$dgreen: "#1a724f";
+$lorange: "#FF6633";
+$lpink: "#FF0066";
 
 $lb-to-lg: ($lblue, $lgreen);
 $db-to-dg: ($dblue, $dgreen);
 $lo-to-lp: ($lorange, $lpink);
 
-@mixin shadow($top: '', $bottom: '', $left: '', $right: '') {
-	$bs: '';
+@mixin shadow($top: "", $bottom: "", $left: "", $right: "") {
+	$bs: "";
 
-	@if $top != '' {
-		$bs: '#{$bs}inset 0px 2px 0px 0px #{$top}, ';
+	@if $top != "" {
+		$bs: "#{$bs}inset 0px 2px 0px 0px #{$top}, ";
 	}
 
-	@if $bottom != '' {
-		$bs: '#{$bs}inset 0px -2px 0px 0px #{$bottom}, ';
+	@if $bottom != "" {
+		$bs: "#{$bs}inset 0px -2px 0px 0px #{$bottom}, ";
 	}
 
-	@if $left != '' {
-		$bs: '#{$bs}inset 2px 0px 0px 0px #{$left}, ';
+	@if $left != "" {
+		$bs: "#{$bs}inset 2px 0px 0px 0px #{$left}, ";
 	}
 
-	@if $right != '' {
-		$bs: '#{$bs}inset -2px 0px 0px 0px #{$right}, ';
+	@if $right != "" {
+		$bs: "#{$bs}inset -2px 0px 0px 0px #{$right}, ";
 	}
 
 	$bs: string.slice($bs, 1, string.length($bs) - 2);
@@ -49,20 +49,20 @@ $lo-to-lp: ($lorange, $lpink);
 
 @mixin animated-shadow(
 	$top: (
-		'',
-		''
+		"",
+		"",
 	),
 	$bottom: (
-		'',
-		''
+		"",
+		"",
 	),
 	$left: (
-		'',
-		''
+		"",
+		"",
 	),
 	$right: (
-		'',
-		''
+		"",
+		"",
 	)
 ) {
 	@include shadow(list.nth($top, 1), list.nth($bottom, 1), list.nth($left, 1), list.nth($right, 1));
@@ -119,40 +119,40 @@ $lo-to-lp: ($lorange, $lpink);
 }
 
 @mixin create-shadow($args...) {
-	$top: ('', '');
-	$bottom: ('', '');
-	$left: ('', '');
-	$right: ('', '');
+	$top: ("", "");
+	$bottom: ("", "");
+	$left: ("", "");
+	$right: ("", "");
 
-	@if list.index($args, 'top') {
+	@if list.index($args, "top") {
 		$top: $lb-to-lg;
 	}
 
-	@if list.index($args, 'bottom') {
+	@if list.index($args, "bottom") {
 		$bottom: $lb-to-lg;
 	}
 
-	@if list.index($args, 'left') {
+	@if list.index($args, "left") {
 		$left: $lb-to-lg;
 	}
 
-	@if list.index($args, 'right') {
+	@if list.index($args, "right") {
 		$right: $lb-to-lg;
 	}
 
-	@if list.index($args, 'ntop') {
+	@if list.index($args, "ntop") {
 		$top: $db-to-dg;
 	}
 
-	@if list.index($args, 'nbottom') {
+	@if list.index($args, "nbottom") {
 		$bottom: $db-to-dg;
 	}
 
-	@if list.index($args, 'nleft') {
+	@if list.index($args, "nleft") {
 		$left: $db-to-dg;
 	}
 
-	@if list.index($args, 'nright') {
+	@if list.index($args, "nright") {
 		$right: $db-to-dg;
 	}
 

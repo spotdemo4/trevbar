@@ -1,8 +1,8 @@
-import GObject, { getter, register } from 'ags/gobject';
-import { exec } from 'ags/process';
-import { interval } from 'ags/time';
+import GObject, { getter, register } from "ags/gobject";
+import { exec } from "ags/process";
+import { interval } from "ags/time";
 
-@register({ GTypeName: 'Tailscale' })
+@register({ GTypeName: "Tailscale" })
 export default class Tailscale extends GObject.Object {
 	static instance: Tailscale;
 
@@ -24,16 +24,16 @@ export default class Tailscale extends GObject.Object {
 
 		interval(5000, () => {
 			try {
-				exec('tailscale status');
+				exec("tailscale status");
 
 				if (!this.#connected) {
 					this.#connected = true;
-					this.notify('connected');
+					this.notify("connected");
 				}
 			} catch {
 				if (this.#connected) {
 					this.#connected = false;
-					this.notify('connected');
+					this.notify("connected");
 				}
 
 				return;

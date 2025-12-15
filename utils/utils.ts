@@ -1,5 +1,5 @@
-import { Gdk, Gtk } from 'ags/gtk4';
-import Hyprland from 'gi://AstalHyprland';
+import { Gdk, Gtk } from "ags/gtk4";
+import Hyprland from "gi://AstalHyprland";
 
 const display = Gdk.Display.get_default();
 const iconTheme = display ? Gtk.IconTheme.get_for_display(display) : Gtk.IconTheme.new();
@@ -63,20 +63,20 @@ export function getIcon(name?: string, fallback?: string): string {
 
 	// Hard-coded icons
 	switch (name) {
-		case 'zen-beta':
-		case 'zen-alpha':
-		case 'zen':
-			return getIcon('zen-white-symbolic', fallback);
-		case 'jetbrains-datagrip':
-			return getIcon('datagrip', fallback);
-		case 'jetbrains-idea-ce':
-			return getIcon('idea', fallback);
-		case 'onlyoffice desktop editors':
-			return getIcon('onlyoffice-desktopeditors', fallback);
-		case 'vesktop':
-			return getIcon('discord-tray', fallback);
-		case 'syncthing':
-			return getIcon('si-syncthing-2', fallback);
+		case "zen-beta":
+		case "zen-alpha":
+		case "zen":
+			return getIcon("zen-white-symbolic", fallback);
+		case "jetbrains-datagrip":
+			return getIcon("datagrip", fallback);
+		case "jetbrains-idea-ce":
+			return getIcon("idea", fallback);
+		case "onlyoffice desktop editors":
+			return getIcon("onlyoffice-desktopeditors", fallback);
+		case "vesktop":
+			return getIcon("discord-tray", fallback);
+		case "syncthing":
+			return getIcon("si-syncthing-2", fallback);
 	}
 
 	if (!name || !iconTheme.has_icon(name)) {
@@ -84,7 +84,7 @@ export function getIcon(name?: string, fallback?: string): string {
 			return getIcon(fallback);
 		}
 
-		return 'item-missing-symbolic';
+		return "item-missing-symbolic";
 	}
 
 	return name;

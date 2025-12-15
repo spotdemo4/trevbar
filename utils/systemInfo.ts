@@ -1,8 +1,8 @@
-import GObject, { getter, register } from 'ags/gobject';
-import { interval } from 'ags/time';
-import GTop from 'gi://GTop?version=2.0';
+import GObject, { getter, register } from "ags/gobject";
+import { interval } from "ags/time";
+import GTop from "gi://GTop?version=2.0";
 
-@register({ GTypeName: 'SystemInfo' })
+@register({ GTypeName: "SystemInfo" })
 export default class SystemInfo extends GObject.Object {
 	static instance: SystemInfo;
 	static cpu: GTop.glibtop_cpu;
@@ -56,7 +56,7 @@ export default class SystemInfo extends GObject.Object {
 			prevTotal = SystemInfo.cpu.total;
 
 			this.#cpuUsage = total;
-			this.notify('cpu_usage');
+			this.notify("cpu_usage");
 		});
 
 		// Calculate memory usage
@@ -67,7 +67,7 @@ export default class SystemInfo extends GObject.Object {
 			const availableUsed = SystemInfo.memory.used - SystemInfo.memory.cached;
 
 			this.#memUsage = Math.round((availableUsed / SystemInfo.memory.total) * 100);
-			this.notify('mem_usage');
+			this.notify("mem_usage");
 		});
 	}
 }

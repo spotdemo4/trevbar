@@ -1,17 +1,17 @@
-import { createBinding, createComputed, createState, For } from 'ags';
-import { Astal, Gdk, Gtk } from 'ags/gtk4';
-import app from 'ags/gtk4/app';
-import { execAsync } from 'ags/process';
-import { createPoll } from 'ags/time';
-import Battery from 'gi://AstalBattery';
-import Hyprland from 'gi://AstalHyprland';
-import Tray from 'gi://AstalTray';
-import type AstalTray from 'gi://AstalTray';
-import Pango from 'gi://Pango?version=1.0';
-import Syncthing from '../utils/syncthing';
-import SystemInfo from '../utils/systemInfo';
-import Tailscale from '../utils/tailscale';
-import { getHyprlandMonitor, getIcon } from '../utils/utils';
+import { createBinding, createComputed, createState, For } from "ags";
+import { Astal, Gdk, Gtk } from "ags/gtk4";
+import app from "ags/gtk4/app";
+import { execAsync } from "ags/process";
+import { createPoll } from "ags/time";
+import Battery from "gi://AstalBattery";
+import Hyprland from "gi://AstalHyprland";
+import Tray from "gi://AstalTray";
+import type AstalTray from "gi://AstalTray";
+import Pango from "gi://Pango?version=1.0";
+import Syncthing from "../utils/syncthing";
+import SystemInfo from "../utils/systemInfo";
+import Tailscale from "../utils/tailscale";
+import { getHyprlandMonitor, getIcon } from "../utils/utils";
 
 export default function Bar(gdkmonitor: Gdk.Monitor) {
 	const { TOP, LEFT, RIGHT } = Astal.WindowAnchor;
@@ -56,21 +56,21 @@ type Desktop = {
 function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 	const hypr = Hyprland.get_default();
 	const hyprMonitor = getHyprlandMonitor(monitor);
-	const workspaces = createBinding(hypr, 'workspaces');
+	const workspaces = createBinding(hypr, "workspaces");
 
 	const [clients, setClients] = createState(hypr.get_clients());
-	hypr.connect('client-added', (_, client) => {
+	hypr.connect("client-added", (_, client) => {
 		setClients((c) => [...c, client]);
 	});
-	hypr.connect('client-removed', (_, address) => {
+	hypr.connect("client-removed", (_, address) => {
 		setClients((c) => c.filter((c) => c.address != address));
 	});
-	hypr.connect('client-moved', (hy) => {
+	hypr.connect("client-moved", (hy) => {
 		setClients(() => hy.get_clients());
 	});
 
 	const desktops = createComputed(
-		[workspaces, clients, createBinding(hypr, 'focusedWorkspace')],
+		[workspaces, clients, createBinding(hypr, "focusedWorkspace")],
 		(workspaces, clients, focusedWorkspace) => {
 			const desktops: Desktop[] = [];
 
@@ -93,7 +93,7 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 					clients: clients
 						.filter((client) => client.workspace && client.workspace.id === workspace.id)
 						.sort((a, b) => a.x - b.x),
-					focused: focusedWorkspace ? workspace.id === focusedWorkspace.id : false
+					focused: focusedWorkspace ? workspace.id === focusedWorkspace.id : false,
 				};
 				desktops.push(desktop);
 			}
@@ -102,7 +102,7 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 			desktops.sort((a, b) => a.workspace.id - b.workspace.id);
 
 			return desktops;
-		}
+		},
 	);
 
 	return (
@@ -112,8 +112,8 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 					<button
 						onClicked={() => desktop.workspace.focus()}
 						tooltipText={`Workspace ${desktop.workspace.name}`}
-						cursor={Gdk.Cursor.new_from_name('pointer', null)}
-						class={desktop.focused ? 'focused' : ''}
+						cursor={Gdk.Cursor.new_from_name("pointer", null)}
+						class={desktop.focused ? "focused" : ""}
 					>
 						<Workspace clients={desktop.clients} />
 					</button>
@@ -135,8 +135,8 @@ function Workspace({ clients }: { clients: Hyprland.Client[] }) {
 
 function Title(): JSX.Element {
 	const hypr = Hyprland.get_default();
-	const clients = createBinding(hypr, 'clients');
-	const focused = createBinding(hypr, 'focusedClient');
+	const clients = createBinding(hypr, "clients");
+	const focused = createBinding(hypr, "focusedClient");
 
 	const focusedClient = createComputed([clients, focused], (clients, focused) => {
 		if (focused) {
@@ -153,7 +153,7 @@ function Title(): JSX.Element {
 
 	const clientIcon = focusedClient.as((c) => {
 		if (!c) {
-			return 'item-missing-symbolic';
+			return "item-missing-symbolic";
 		}
 
 		const icon = getIcon(c.initialClass, c.title);
@@ -162,7 +162,7 @@ function Title(): JSX.Element {
 
 	const clientTitle = focusedClient.as((c) => {
 		if (!c || !c.title) {
-			return 'n/a';
+			return "n/a";
 		}
 
 		return c.title;
@@ -186,20 +186,20 @@ function Title(): JSX.Element {
 
 function CpuUsage(): JSX.Element {
 	const system = SystemInfo.get_default();
-	const cpu = createBinding(system, 'cpu_usage');
+	const cpu = createBinding(system, "cpu_usage");
 
 	const classNames = cpu.as((usage) => {
 		if (usage < 80) {
-			return 'menu healthy';
+			return "menu healthy";
 		} else {
-			return 'menu unhealthy';
+			return "menu unhealthy";
 		}
 	});
 
 	const [toggle, setToggle] = createState(false);
 	const label = createComputed([cpu, toggle], (cpu, toggle) => {
 		if (toggle) {
-			return 'CPU';
+			return "CPU";
 		} else {
 			return `${cpu}%`;
 		}
@@ -218,7 +218,7 @@ function CpuUsage(): JSX.Element {
 			<button
 				$type="overlay"
 				halign={Gtk.Align.CENTER}
-				cursor={Gdk.Cursor.new_from_name('pointer', null)}
+				cursor={Gdk.Cursor.new_from_name("pointer", null)}
 				onClicked={() => setToggle(!toggle.get())}
 				class={classNames}
 				tooltipText="CPU Usage"
@@ -234,20 +234,20 @@ function CpuUsage(): JSX.Element {
 
 function RamUsage(): JSX.Element {
 	const system = SystemInfo.get_default();
-	const mem = createBinding(system, 'mem_usage');
+	const mem = createBinding(system, "mem_usage");
 
 	const classNames = mem.as((usage) => {
 		if (usage < 90) {
-			return 'menu healthy';
+			return "menu healthy";
 		} else {
-			return 'menu unhealthy';
+			return "menu unhealthy";
 		}
 	});
 
 	const [toggle, setToggle] = createState(false);
 	const label = createComputed([mem, toggle], (mem, toggle) => {
 		if (toggle) {
-			return 'RAM';
+			return "RAM";
 		} else {
 			return `${mem}%`;
 		}
@@ -266,7 +266,7 @@ function RamUsage(): JSX.Element {
 			<button
 				$type="overlay"
 				halign={Gtk.Align.CENTER}
-				cursor={Gdk.Cursor.new_from_name('pointer', null)}
+				cursor={Gdk.Cursor.new_from_name("pointer", null)}
 				onClicked={() => setToggle(!toggle.get())}
 				class={classNames}
 				tooltipText="RAM Usage"
@@ -284,20 +284,20 @@ function BatteryUsage() {
 	const bat = Battery.get_default();
 	if (!bat.isPresent) return <box visible={false} />;
 
-	const charge = createBinding(bat, 'percentage');
+	const charge = createBinding(bat, "percentage");
 
 	const classNames = charge.as((charge) => {
 		if (charge > 0.2) {
-			return 'menu healthy';
+			return "menu healthy";
 		} else {
-			return 'menu unhealthy';
+			return "menu unhealthy";
 		}
 	});
 
 	const [toggle, setToggle] = createState(false);
 	const label = createComputed([charge, toggle], (charge, toggle) => {
 		if (toggle) {
-			return 'Battery';
+			return "Battery";
 		} else {
 			return `${charge * 100}%`;
 		}
@@ -316,7 +316,7 @@ function BatteryUsage() {
 			<button
 				$type="overlay"
 				halign={Gtk.Align.CENTER}
-				cursor={Gdk.Cursor.new_from_name('pointer', null)}
+				cursor={Gdk.Cursor.new_from_name("pointer", null)}
 				onClicked={() => setToggle(!toggle.get())}
 				class={classNames}
 				tooltipText="Battery Usage"
@@ -332,25 +332,25 @@ function BatteryUsage() {
 
 function TailscaleWidget(): JSX.Element {
 	const tailscale = Tailscale.get_default();
-	const connected = createBinding(tailscale, 'connected');
+	const connected = createBinding(tailscale, "connected");
 
 	const classNames = connected.as((connected) => {
 		if (connected) {
-			return 'menu healthy';
+			return "menu healthy";
 		} else {
-			return 'menu unhealthy';
+			return "menu unhealthy";
 		}
 	});
 
 	return (
 		<box>
 			<button
-				onClicked={() => execAsync('xdg-open https://login.tailscale.com/admin/machines')}
-				cursor={Gdk.Cursor.new_from_name('pointer', null)}
+				onClicked={() => execAsync("xdg-open https://login.tailscale.com/admin/machines")}
+				cursor={Gdk.Cursor.new_from_name("pointer", null)}
 				class={classNames}
 				tooltipText="Tailscale Status"
 			>
-				<image iconName={getIcon('tailscale')} />
+				<image iconName={getIcon("tailscale")} />
 			</button>
 		</box>
 	);
@@ -358,25 +358,25 @@ function TailscaleWidget(): JSX.Element {
 
 function SyncthingWidget(): JSX.Element {
 	const syncthing = Syncthing.get_default();
-	const connected = createBinding(syncthing, 'connected');
+	const connected = createBinding(syncthing, "connected");
 
 	const classNames = connected.as((connected) => {
 		if (connected) {
-			return 'menu healthy';
+			return "menu healthy";
 		} else {
-			return 'menu unhealthy';
+			return "menu unhealthy";
 		}
 	});
 
 	return (
 		<box>
 			<button
-				onClicked={() => execAsync('xdg-open http://localhost:8384/')}
-				cursor={Gdk.Cursor.new_from_name('pointer', null)}
+				onClicked={() => execAsync("xdg-open http://localhost:8384/")}
+				cursor={Gdk.Cursor.new_from_name("pointer", null)}
 				class={classNames}
 				tooltipText="Syncthing Status"
 			>
-				<image iconName={getIcon('syncthing')} />
+				<image iconName={getIcon("syncthing")} />
 			</button>
 		</box>
 	);
@@ -384,13 +384,13 @@ function SyncthingWidget(): JSX.Element {
 
 function SysTray(): JSX.Element {
 	const tray = Tray.get_default();
-	const items = createBinding(tray, 'items');
+	const items = createBinding(tray, "items");
 
 	const init = (btn: Gtk.MenuButton, item: AstalTray.TrayItem) => {
 		btn.menuModel = item.menuModel;
-		btn.insert_action_group('dbusmenu', item.actionGroup);
-		item.connect('notify::action-group', () => {
-			btn.insert_action_group('dbusmenu', item.actionGroup);
+		btn.insert_action_group("dbusmenu", item.actionGroup);
+		item.connect("notify::action-group", () => {
+			btn.insert_action_group("dbusmenu", item.actionGroup);
 		});
 	};
 
@@ -401,9 +401,9 @@ function SysTray(): JSX.Element {
 					<menubutton
 						class="menu"
 						$={(self) => init(self, item)}
-						cursor={Gdk.Cursor.new_from_name('pointer', null)}
+						cursor={Gdk.Cursor.new_from_name("pointer", null)}
 					>
-						<image gicon={createBinding(item, 'gicon')} />
+						<image gicon={createBinding(item, "gicon")} />
 					</menubutton>
 				)}
 			</For>
@@ -412,10 +412,10 @@ function SysTray(): JSX.Element {
 }
 
 function Time(): JSX.Element {
-	const time = createPoll('', 1000, 'date "+%I:%M %D"');
+	const time = createPoll("", 1000, 'date "+%I:%M %D"');
 
 	return (
-		<menubutton class="menu" cursor={Gdk.Cursor.new_from_name('pointer', null)}>
+		<menubutton class="menu" cursor={Gdk.Cursor.new_from_name("pointer", null)}>
 			<label label={time} />
 			<popover>
 				<Gtk.Calendar />
