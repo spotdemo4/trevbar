@@ -80,9 +80,6 @@
             packages = with pkgs; [
               node
 
-              # util
-              bumper
-
               # nix
               nixfmt
             ];
