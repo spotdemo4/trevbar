@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: "Force bump"
+        description: "force"
         required: false
         type: choice
         default: "true"
@@ -24,14 +24,15 @@ jobs:
   bump:
     runs-on: ubuntu-latest
     steps:
-      - name: Initialize
-        uses: spotdemo4/nix-init@e785b8c9ec9fda8072a535786ee5db33429afe4e # v1.12.0
+      - name: Checkout
+        uses: spotdemo4/better-checkout@ff40a2af98474e67fcb548837329b66e419fc7d3 # v0.1.0
         with:
-          app_id: ${{ vars.CLIENT_ID }}
-          app_key: ${{ secrets.PRIVATE_KEY }}
-          fetch_depth: 0
+          app-id: ${{ vars.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          fetch-depth: 0
 
       - name: Bump
         uses: spotdemo4/bumper@0b7f3117b7bd048abb22d66611e0f785db46b044 # v0.7.1
         with:
+          debug: ${{ runner.debug }}
           force: ${{ inputs.force }}
