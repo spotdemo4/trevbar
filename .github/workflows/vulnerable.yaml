@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Initialize
-        uses: spotdemo4/nix-init@e2fa614def25ff8e1ba97f43825b1dc198792423 # v1.8.13
+        uses: spotdemo4/nix-init@e785b8c9ec9fda8072a535786ee5db33429afe4e # v1.12.0
         with:
           shell: vulnerable
 
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Initialize
-        uses: spotdemo4/nix-init@e2fa614def25ff8e1ba97f43825b1dc198792423 # v1.8.13
+        uses: spotdemo4/nix-init@e785b8c9ec9fda8072a535786ee5db33429afe4e # v1.12.0
         with:
           shell: vulnerable
 
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Initialize
-        uses: spotdemo4/nix-init@e2fa614def25ff8e1ba97f43825b1dc198792423 # v1.8.13
+        uses: spotdemo4/nix-init@e785b8c9ec9fda8072a535786ee5db33429afe4e # v1.12.0
         with:
           shell: vulnerable
 
