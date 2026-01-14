@@ -77,9 +77,13 @@ export function getIcon(name?: string, fallback?: string): string {
 			return getIcon("discord-tray", fallback);
 		case "syncthing":
 			return getIcon("si-syncthing-2", fallback);
+		case "codium":
+			return getIcon("vscodium", fallback);
 	}
 
 	if (!name || !iconTheme.has_icon(name)) {
+		console.log(`Icon not found: ${name}`);
+
 		if (fallback) {
 			return getIcon(fallback);
 		}

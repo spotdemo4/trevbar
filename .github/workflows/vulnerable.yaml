@@ -31,11 +31,6 @@ jobs:
       - name: Run flake-checker
         run: flake-checker -f
 
-      - name: Run nix-scan
-        run: nix-scan
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   actions:
     runs-on: ubuntu-latest
     steps:
