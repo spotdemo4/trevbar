@@ -98,7 +98,6 @@
 
               # nix
               flake-checker
-              nix-scan
 
               # actions
               octoscan
