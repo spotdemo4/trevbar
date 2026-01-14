@@ -23,6 +23,7 @@
 		"enabled": true,
 		"automerge": true
 	},
+	"osvVulnerabilityAlerts": true,
 	"packageRules": [
 		{
 			"matchUpdateTypes": ["minor", "patch", "pin", "digest"],
