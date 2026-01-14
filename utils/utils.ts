@@ -82,8 +82,6 @@ export function getIcon(name?: string, fallback?: string): string {
 	}
 
 	if (!name || !iconTheme.has_icon(name)) {
-		console.log(`Icon not found: ${name}`);
-
 		if (fallback) {
 			return getIcon(fallback);
 		}
