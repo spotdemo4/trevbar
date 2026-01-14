@@ -1,7 +1,7 @@
 # trev's status bar
 
-![check](https://github.com/spotdemo4/trevbar/actions/workflows/check.yaml/badge.svg?branch=main)
-![vulnerable](https://github.com/spotdemo4/trevbar/actions/workflows/vulnerable.yaml/badge.svg?branch=main)
+[![check](https://github.com/spotdemo4/trevbar/actions/workflows/check.yaml/badge.svg?branch=main)](https://github.com/spotdemo4/trevbar/actions/workflows/check.yaml)
+[![vulnerable](https://github.com/spotdemo4/trevbar/actions/workflows/vulnerable.yaml/badge.svg?branch=main)](https://github.com/spotdemo4/trevbar/actions/workflows/vulnerable.yaml)
 
 opinionated status bar for [hyprland](https://hypr.land/)
 

@@ -11,13 +11,17 @@
 	"extends": ["config:recommended"],
 	"branchPrefix": "renovate/",
 	"dependencyDashboardTitle": "Dependency Dashboard",
+	"nix": {
+		"enabled": true
+	},
 	"lockFileMaintenance": {
 		"enabled": true,
 		"automerge": true,
 		"schedule": ["* * * * 0"] // every Sunday
 	},
-	"nix": {
-		"enabled": true
+	"vulnerabilityAlerts": {
+		"enabled": true,
+		"automerge": true
 	},
 	"packageRules": [
 		{
