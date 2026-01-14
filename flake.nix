@@ -94,6 +94,7 @@
 
           vulnerable = pkgs.mkShell {
             packages = with pkgs; [
+              # npm audit
               node
 
               # nix
