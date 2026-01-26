@@ -9,8 +9,6 @@
 
 	// repository
 	"extends": ["config:recommended"],
-	"branchPrefix": "renovate/",
-	"dependencyDashboardTitle": "Dependency Dashboard",
 	"nix": {
 		"enabled": true
 	},

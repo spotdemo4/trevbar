@@ -72,6 +72,7 @@
       rec {
         devShells = {
           default = pkgs.mkShell {
+            name = "default";
             buildInputs = [
               (ags.packages.${system}.default.override {
                 inherit extraPackages;
@@ -87,12 +88,14 @@
           };
 
           update = pkgs.mkShell {
+            name = "update";
             packages = with pkgs; [
               renovate
             ];
           };
 
           vulnerable = pkgs.mkShell {
+            name = "vulnerable";
             packages = with pkgs; [
               # npm audit
               node
@@ -143,6 +146,7 @@
         packages.default = pkgs.buildNpmPackage (finalAttrs: {
           pname = "trevbar";
           version = "0.1.15";
+
           src = builtins.path {
             name = "root";
             path = ./.;
