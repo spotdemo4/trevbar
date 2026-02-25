@@ -3,10 +3,10 @@
 
   nixConfig = {
     extra-substituters = [
-      "https://cache.trev.zip/nur"
+      "https://nix.trev.zip"
     ];
     extra-trusted-public-keys = [
-      "nur:70xGHUW1+1b8FqBchldaunN//pZNVo6FKuPL4U/n844="
+      "trev:I39N/EsnHkvfmsbx8RUW+ia5dOzojTQNCTzKYij1chU="
     ];
   };
 
@@ -70,6 +70,8 @@
         deps = with pkgs; [ nvtopPackages.intel ];
 
         node = pkgs.nodejs_24;
+
+        fs = pkgs.lib.fileset;
       in
       rec {
         devShells = {
@@ -136,7 +138,10 @@
           };
 
           nix = {
-            src = ./.;
+            src = fs.toSource {
+              root = ./.;
+              fileset = fs.fileFilter (file: file.hasExt "nix") ./.;
+            };
             deps = with pkgs; [
               nixfmt-tree
             ];
@@ -145,17 +150,31 @@
             '';
           };
 
-          actions = {
-            src = ./.;
+          renovate = {
+            src = fs.toSource {
+              root = ./.github;
+              fileset = ./.github/renovate.json;
+            };
             deps = with pkgs; [
-              action-validator
-              octoscan
               renovate
             ];
             script = ''
-              action-validator .github/**/*.yaml
-              octoscan scan .github
-              renovate-config-validator .github/renovate.json
+              renovate-config-validator renovate.json
+            '';
+          };
+
+          actions = {
+            src = fs.toSource {
+              root = ./.github/workflows;
+              fileset = ./.github/workflows;
+            };
+            deps = with pkgs; [
+              action-validator
+              octoscan
+            ];
+            script = ''
+              action-validator **/*.yaml
+              octoscan scan .
             '';
           };
         };
@@ -164,10 +183,18 @@
           pname = "trevbar";
           version = "0.1.15";
 
-          src = builtins.path {
-            name = "root";
-            path = ./.;
+          src = fs.toSource {
+            root = ./.;
+            fileset = fs.difference ./. (
+              fs.unions [
+                ./.github
+                ./.vscode
+                ./flake.nix
+                ./flake.lock
+              ]
+            );
           };
+
           nodejs = node;
 
           npmDeps = pkgs.importNpmLock {

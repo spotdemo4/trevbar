@@ -71,6 +71,7 @@ export function getIcon(name?: string, fallback?: string): string {
 			return getIcon("datagrip", fallback);
 		case "jetbrains-idea-ce":
 			return getIcon("idea", fallback);
+		case "onlyoffice":
 		case "onlyoffice desktop editors":
 			return getIcon("onlyoffice-desktopeditors", fallback);
 		case "vesktop":
