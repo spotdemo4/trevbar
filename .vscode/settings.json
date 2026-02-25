@@ -3,18 +3,19 @@
 	"editor.formatOnSave": true,
 	"files.associations": {
 		"renovate.json": "jsonc",
-		".envrc.project": "shellscript"
+		".envrc.project": "dotenv",
+		".envrc": "dotenv"
 	},
 
 	// prettier
 	"[javascript]": {
-		"editor.defaultFormatter": "prettier.prettier-vscode"
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
 	"[typescript]": {
-		"editor.defaultFormatter": "prettier.prettier-vscode"
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
 	"[typescriptreact]": {
-		"editor.defaultFormatter": "prettier.prettier-vscode"
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
 
 	// eslint
@@ -31,5 +32,5 @@
 	},
 
 	// actions
-	"editor.defaultFormatter": "prettier.prettier-vscode"
+	"editor.defaultFormatter": "esbenp.prettier-vscode"
 }

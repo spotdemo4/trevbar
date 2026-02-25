@@ -255,6 +255,10 @@ window.Bar {
 				background-color: rgba(80, 80, 80, 0.4);
 			}
 
+			label.percent {
+				min-width: 35px;
+			}
+
 			> box > * {
 				margin-left: 2px;
 				margin-right: 2px;

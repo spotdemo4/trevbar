@@ -9,7 +9,7 @@ on:
         description: "force"
         required: false
         type: choice
-        default: "true"
+        default: "false"
         options:
           - "true"
           - "false"
@@ -19,19 +19,23 @@ concurrency:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   bump:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: spotdemo4/better-checkout@48475b2dda4ef6945cb56e846429b43799121549 # v0.5.1
+        uses: spotdemo4/nix-init@f88963412ff6a2e9c4dc40233e10729444aa7b05 # v1.31.0
         with:
-          app-id: ${{ vars.CLIENT_ID }}
-          private-key: ${{ secrets.PRIVATE_KEY }}
-          fetch-depth: 0
+          app_id: ${{ vars.CLIENT_ID }}
+          app_key: ${{ secrets.PRIVATE_KEY }}
+          fetch_depth: 0
+          shell: bump
 
       - name: Bump
-        uses: spotdemo4/bumper@b1a4251d39348e5eb3beeec51fdbe8e44aaa1937 # v0.10.4
-        with:
-          force: ${{ inputs.force }}
+        run: bumper
+        env:
+          FORCE: ${{ inputs.force }}
+          PATHS: |-
+            .github/README.md

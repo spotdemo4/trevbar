@@ -12,13 +12,14 @@ concurrency:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Initialize
+      - name: Checkout
         uses: spotdemo4/nix-init@f88963412ff6a2e9c4dc40233e10729444aa7b05 # v1.31.0
 
-      - name: Run checks
+      - name: Check
         run: nix flake check

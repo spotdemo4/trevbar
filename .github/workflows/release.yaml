@@ -9,6 +9,8 @@ concurrency:
   group: release
 
 permissions:
+  contents: read
+  id-token: write
   packages: write
 
 jobs:
@@ -17,12 +19,17 @@ jobs:
     steps:
       - id: checkout
         name: Checkout
-        uses: spotdemo4/better-checkout@48475b2dda4ef6945cb56e846429b43799121549 # v0.5.1
+        uses: spotdemo4/nix-init@f88963412ff6a2e9c4dc40233e10729444aa7b05 # v1.31.0
         with:
-          app-id: ${{ vars.CLIENT_ID }}
-          private-key: ${{ secrets.PRIVATE_KEY }}
+          app_id: ${{ vars.CLIENT_ID }}
+          app_key: ${{ secrets.PRIVATE_KEY }}
+          fetch_depth: 0
+          shell: release
 
-      - name: Release
-        uses: spotdemo4/nix-flake-release@7bbb4f6af968cb81b3cc36f906cd3c8e15a29285 # v0.11.5
-        with:
-          github_token: ${{ steps.checkout.outputs.token }}
+      - name: Run nix-release
+        run: flake-release
+        env:
+          GITHUB_TOKEN: ${{ steps.checkout.outputs.token }}
+          REGISTRY: ghcr.io
+          REGISTRY_USERNAME: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

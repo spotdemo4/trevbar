@@ -8,6 +8,7 @@ import Hyprland from "gi://AstalHyprland";
 import Tray from "gi://AstalTray";
 import type AstalTray from "gi://AstalTray";
 import Pango from "gi://Pango?version=1.0";
+import NvTop from "../utils/nvtop";
 import Syncthing from "../utils/syncthing";
 import SystemInfo from "../utils/systemInfo";
 import Tailscale from "../utils/tailscale";
@@ -35,6 +36,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
 				</box>
 				<box $type="end" hexpand halign={Gtk.Align.END} class="right">
 					<CpuUsage />
+					<GpuUsage />
 					<RamUsage />
 					<BatteryUsage />
 					<TailscaleWidget />
@@ -222,8 +224,56 @@ function CpuUsage(): JSX.Element {
 				tooltipText="CPU Usage"
 			>
 				<box>
-					<image iconName="processor-symbolic" />
-					<label label={label} />
+					<image iconName="indicator-sensors-cpu" />
+					<label class="percent" label={label} />
+				</box>
+			</button>
+		</overlay>
+	);
+}
+
+function GpuUsage(): JSX.Element {
+	const nvtop = NvTop.get_default();
+	const gpu = createBinding(nvtop, "gpu_usage");
+
+	const classNames = gpu.as((usage) => {
+		if (usage < 90) {
+			return "menu healthy";
+		} else {
+			return "menu unhealthy";
+		}
+	});
+
+	const [toggle, setToggle] = createState(false);
+	const label = createComputed(() => {
+		if (toggle()) {
+			return "GPU";
+		} else {
+			return `${Math.round(gpu())}%`;
+		}
+	});
+
+	return (
+		<overlay
+			$={(self) => {
+				const button = self.get_last_child();
+				if (button) {
+					self.set_measure_overlay(button, true);
+				}
+			}}
+		>
+			<levelbar orientation={Gtk.Orientation.HORIZONTAL} minValue={0} maxValue={100} value={gpu} />
+			<button
+				$type="overlay"
+				halign={Gtk.Align.CENTER}
+				cursor={Gdk.Cursor.new_from_name("pointer", null)}
+				onClicked={() => setToggle(!toggle.peek())}
+				class={classNames}
+				tooltipText="GPU Usage"
+			>
+				<box>
+					<image iconName="indicator-sensors-gpu" />
+					<label class="percent" label={label} />
 				</box>
 			</button>
 		</overlay>
@@ -270,8 +320,8 @@ function RamUsage(): JSX.Element {
 				tooltipText="RAM Usage"
 			>
 				<box>
-					<image iconName="memory-symbolic" />
-					<label label={label} />
+					<image iconName="indicator-sensors-memory" />
+					<label class="percent" label={label} />
 				</box>
 			</button>
 		</overlay>
@@ -320,8 +370,8 @@ function BatteryUsage() {
 				tooltipText="Battery Usage"
 			>
 				<box>
-					<image iconName={bat.iconName} />
-					<label label={label} />
+					<image iconName={bat.battery_icon_name} />
+					<label class="percent" label={label} />
 				</box>
 			</button>
 		</overlay>

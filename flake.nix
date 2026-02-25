@@ -67,35 +67,52 @@
           ]
           ++ astalPackages;
 
+        deps = with pkgs; [ nvtopPackages.intel ];
+
         node = pkgs.nodejs_24;
       in
       rec {
         devShells = {
           default = pkgs.mkShell {
-            name = "default";
             buildInputs = [
               (ags.packages.${system}.default.override {
                 inherit extraPackages;
               })
             ];
-            packages = with pkgs; [
-              node
+            packages =
+              with pkgs;
+              [
+                node
 
-              # nix
-              nixfmt
-            ];
+                # format
+                nixfmt
+              ]
+              ++ deps;
             shellHook = pkgs.shellhook.ref;
           };
 
+          bump = pkgs.mkShell {
+            packages = with pkgs; [
+              bumper
+            ];
+          };
+
+          release = pkgs.mkShell {
+            packages = with pkgs; [
+              flake-release
+            ];
+          };
+
           update = pkgs.mkShell {
-            name = "update";
             packages = with pkgs; [
               renovate
+
+              # npm i
+              node
             ];
           };
 
           vulnerable = pkgs.mkShell {
-            name = "vulnerable";
             packages = with pkgs; [
               # npm audit
               node
@@ -163,12 +180,16 @@
           npmConfigHook = pkgs.importNpmLock.npmConfigHook;
 
           nativeBuildInputs = with pkgs; [
-            wrapGAppsHook3
+            wrapGAppsHook4
             gobject-introspection
             ags.packages.${system}.default
           ];
 
-          buildInputs = extraPackages ++ [ pkgs.gjs ];
+          buildInputs = [
+            pkgs.gjs
+          ]
+          ++ extraPackages
+          ++ deps;
 
           doCheck = false;
           dontNpmBuild = true;
@@ -182,6 +203,12 @@
             ags bundle app.ts $out/bin/${finalAttrs.pname} -d "SRC='$out/share'"
 
             runHook postInstall
+          '';
+
+          preFixup = ''
+            gappsWrapperArgs+=(
+              --prefix PATH : "${pkgs.nvtopPackages.intel}/bin"
+            )
           '';
 
           meta = {

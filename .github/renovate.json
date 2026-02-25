@@ -28,8 +28,17 @@
 			"automerge": true
 		},
 		{
+			"matchManagers": ["nix"],
+			"groupName": "nix inputs"
+		},
+		{
 			"matchManagers": ["github-actions"],
-			"groupName": "GitHub Actions"
+			"groupName": "github actions"
+		},
+		{
+			"matchManagers": ["npm"],
+			"matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+			"groupName": "node packages"
 		},
 		{
 			"matchManagers": ["npm"],

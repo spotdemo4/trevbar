@@ -7,13 +7,14 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   renovate:
     runs-on: ubuntu-latest
     steps:
-      - id: init
-        name: Initialize
+      - id: checkout
+        name: Checkout
         uses: spotdemo4/nix-init@f88963412ff6a2e9c4dc40233e10729444aa7b05 # v1.31.0
         with:
           app_id: ${{ vars.CLIENT_ID }}
@@ -24,5 +25,5 @@ jobs:
         run: renovate
         env:
           RENOVATE_CONFIG_FILE: .github/renovate.json
-          RENOVATE_TOKEN: ${{ steps.init.outputs.token }}
+          RENOVATE_TOKEN: ${{ steps.checkout.outputs.token }}
           LOG_LEVEL: ${{ runner.debug == '1' && 'debug' || 'info' }}
