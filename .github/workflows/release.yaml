@@ -26,7 +26,7 @@ jobs:
           fetch_depth: 0
           shell: release
 
-      - name: Run nix-release
+      - name: Publish to GitHub
         run: flake-release
         env:
           GITHUB_TOKEN: ${{ steps.checkout.outputs.token }}
