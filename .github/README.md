@@ -7,4 +7,10 @@ opinionated status bar for [hyprland](https://hypr.land/)
 
 ![example](https://i.imgur.com/PXb8bNy.png)
 
-made with [AGS](https://github.com/Aylur/ags)
+made with [ags](https://github.com/Aylur/ags)
+
+### nix
+
+```sh
+nix run github:spotdemo4/trevbar
+```

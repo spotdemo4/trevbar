@@ -37,5 +37,3 @@ jobs:
         run: bumper
         env:
           FORCE: ${{ inputs.force }}
-          PATHS: |-
-            .github/README.md
