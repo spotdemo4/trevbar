@@ -37,6 +37,11 @@
 		},
 		{
 			"matchManagers": ["npm"],
+			"rangeStrategy": "bump",
+			"postUpdateOptions": ["npmInstallTwice"]
+		},
+		{
+			"matchManagers": ["npm"],
 			"matchUpdateTypes": ["minor", "patch", "pin", "digest"],
 			"groupName": "node packages"
 		},
