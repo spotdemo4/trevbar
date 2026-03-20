@@ -31,22 +31,13 @@
 
   outputs =
     {
-      nixpkgs,
       trev,
       ags,
       ...
     }:
     trev.libs.mkFlake (
-      system:
+      system: pkgs:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [
-            trev.overlays.packages
-            trev.overlays.libs
-          ];
-        };
-
         astalPackages = with ags.packages.${system}; [
           io
           astal4
@@ -138,23 +129,19 @@
           };
 
           nix = {
-            src = fs.toSource {
-              root = ./.;
-              fileset = fs.fileFilter (file: file.hasExt "nix") ./.;
-            };
+            root = ./.;
+            filter = file: file.hasExt "nix";
             deps = with pkgs; [
-              nixfmt-tree
+              nixfmt
             ];
-            script = ''
-              treefmt --ci
+            forEach = ''
+              nixfmt --check "$file"
             '';
           };
 
           renovate = {
-            src = fs.toSource {
-              root = ./.github;
-              fileset = ./.github/renovate.json;
-            };
+            root = ./.github;
+            fileset = ./.github/renovate.json;
             deps = with pkgs; [
               renovate
             ];
@@ -164,17 +151,14 @@
           };
 
           actions = {
-            src = fs.toSource {
-              root = ./.github/workflows;
-              fileset = ./.github/workflows;
-            };
+            root = ./.github/workflows;
             deps = with pkgs; [
               action-validator
               octoscan
             ];
-            script = ''
-              action-validator **/*.yaml
-              octoscan scan .
+            forEach = ''
+              action-validator "$file"
+              octoscan scan "$file"
             '';
           };
         };
