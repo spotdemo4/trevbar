@@ -79,6 +79,11 @@
 
                 # format
                 nixfmt
+
+                # util
+                bumper
+                flake-release
+                renovate
               ]
               ++ deps;
             shellHook = pkgs.shellhook.ref;
