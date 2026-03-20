@@ -119,7 +119,7 @@
           };
         };
 
-        checks = pkgs.lib.mkChecks {
+        checks = pkgs.mkChecks {
           trevbar = {
             src = packages.default;
             script = ''
@@ -191,7 +191,7 @@
           npmConfigHook = pkgs.importNpmLock.npmConfigHook;
 
           nativeBuildInputs = with pkgs; [
-            wrapGAppsHook4
+            wrapGAppsHook3
             gobject-introspection
             ags.packages.${system}.default
           ];
@@ -211,7 +211,7 @@
             mkdir -p $out/bin
             mkdir -p $out/share
             cp -r * $out/share
-            ags bundle app.ts $out/bin/${finalAttrs.pname} -d "SRC='$out/share'"
+            ags bundle app.ts $out/bin/${finalAttrs.pname} -d "SRC='$out/share'" --gtk 4
 
             runHook postInstall
           '';
