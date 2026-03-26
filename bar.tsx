@@ -1,4 +1,4 @@
-import { createBinding, createComputed, createState, For, With } from "ags";
+import { createBinding, createComputed, createState, For } from "ags";
 import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
 import { execAsync } from "ags/process";
@@ -281,7 +281,7 @@ function RamUsage(): JSX.Element {
 			tooltipText="RAM Usage"
 		>
 			<box>
-				<image iconName="indicator-sensors-memory" visible={showImage} />
+				<image iconName="memory-stick" visible={showImage} />
 				<label label={`${Math.round(mem())}%`} visible={showLabel} />
 			</box>
 		</button>
