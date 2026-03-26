@@ -58,7 +58,9 @@
           ]
           ++ astalPackages;
 
-        deps = with pkgs; [ nvtopPackages.intel ];
+        deps = with pkgs; [
+          nvtopPackages.intel
+        ];
 
         node = pkgs.nodejs_24;
 
@@ -216,7 +218,7 @@
             mkdir -p $out/bin
             mkdir -p $out/share
             cp -r * $out/share
-            ags bundle app.ts $out/bin/${finalAttrs.pname} -d "SRC='$out/share'" --gtk 4
+            ags bundle app.tsx $out/bin/${finalAttrs.pname} -d "SRC='$out/share'" --gtk 4
 
             runHook postInstall
           '';

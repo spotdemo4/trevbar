@@ -8,13 +8,13 @@ import Hyprland from "gi://AstalHyprland";
 import Tray from "gi://AstalTray";
 import type AstalTray from "gi://AstalTray";
 import Pango from "gi://Pango?version=1.0";
-import NvTop from "../utils/nvtop";
-import Syncthing from "../utils/syncthing";
-import SystemInfo from "../utils/systemInfo";
-import Tailscale from "../utils/tailscale";
-import { getHyprlandMonitor, getIcon } from "../utils/utils";
+import NvTop from "./utils/nvtop";
+import Syncthing from "./utils/syncthing";
+import SystemInfo from "./utils/systemInfo";
+import Tailscale from "./utils/tailscale";
+import { getHyprlandMonitor, getIcon } from "./utils/utils";
 
-export default function Bar(gdkmonitor: Gdk.Monitor) {
+export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
 	const { TOP, LEFT, RIGHT } = Astal.WindowAnchor;
 
 	return (
@@ -189,10 +189,12 @@ function CpuUsage(): JSX.Element {
 	const cpu = createBinding(system, "cpu_usage");
 
 	const classNames = cpu.as((usage) => {
-		if (usage < 80) {
-			return "menu healthy";
+		if (usage < 70) {
+			return "green";
+		} else if (usage < 90) {
+			return "yellow";
 		} else {
-			return "menu unhealthy";
+			return "red";
 		}
 	});
 
@@ -206,29 +208,19 @@ function CpuUsage(): JSX.Element {
 	});
 
 	return (
-		<overlay
-			$={(self) => {
-				const button = self.get_last_child();
-				if (button) {
-					self.set_measure_overlay(button, true);
-				}
-			}}
+		<button
+			$type="overlay"
+			halign={Gtk.Align.CENTER}
+			cursor={Gdk.Cursor.new_from_name("pointer", null)}
+			onClicked={() => setToggle(!toggle.peek())}
+			class={classNames}
+			tooltipText="CPU Usage"
 		>
-			<levelbar orientation={Gtk.Orientation.HORIZONTAL} minValue={0} maxValue={100} value={cpu} />
-			<button
-				$type="overlay"
-				halign={Gtk.Align.CENTER}
-				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				onClicked={() => setToggle(!toggle.peek())}
-				class={classNames}
-				tooltipText="CPU Usage"
-			>
-				<box>
-					<image iconName="indicator-sensors-cpu" />
-					<label class="percent" label={label} />
-				</box>
-			</button>
-		</overlay>
+			<box>
+				<image iconName="indicator-sensors-cpu" />
+				<label class="percent" label={label} />
+			</box>
+		</button>
 	);
 }
 
@@ -237,10 +229,12 @@ function GpuUsage(): JSX.Element {
 	const gpu = createBinding(nvtop, "gpu_usage");
 
 	const classNames = gpu.as((usage) => {
-		if (usage < 90) {
-			return "menu healthy";
+		if (usage < 70) {
+			return "green";
+		} else if (usage < 90) {
+			return "yellow";
 		} else {
-			return "menu unhealthy";
+			return "red";
 		}
 	});
 
@@ -254,29 +248,19 @@ function GpuUsage(): JSX.Element {
 	});
 
 	return (
-		<overlay
-			$={(self) => {
-				const button = self.get_last_child();
-				if (button) {
-					self.set_measure_overlay(button, true);
-				}
-			}}
+		<button
+			$type="overlay"
+			halign={Gtk.Align.CENTER}
+			cursor={Gdk.Cursor.new_from_name("pointer", null)}
+			onClicked={() => setToggle(!toggle.peek())}
+			class={classNames}
+			tooltipText="GPU Usage"
 		>
-			<levelbar orientation={Gtk.Orientation.HORIZONTAL} minValue={0} maxValue={100} value={gpu} />
-			<button
-				$type="overlay"
-				halign={Gtk.Align.CENTER}
-				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				onClicked={() => setToggle(!toggle.peek())}
-				class={classNames}
-				tooltipText="GPU Usage"
-			>
-				<box>
-					<image iconName="indicator-sensors-gpu" />
-					<label class="percent" label={label} />
-				</box>
-			</button>
-		</overlay>
+			<box>
+				<image iconName="indicator-sensors-gpu" />
+				<label class="percent" label={label} />
+			</box>
+		</button>
 	);
 }
 
@@ -285,10 +269,12 @@ function RamUsage(): JSX.Element {
 	const mem = createBinding(system, "mem_usage");
 
 	const classNames = mem.as((usage) => {
-		if (usage < 90) {
-			return "menu healthy";
+		if (usage < 70) {
+			return "green";
+		} else if (usage < 90) {
+			return "yellow";
 		} else {
-			return "menu unhealthy";
+			return "red";
 		}
 	});
 
@@ -302,29 +288,19 @@ function RamUsage(): JSX.Element {
 	});
 
 	return (
-		<overlay
-			$={(self) => {
-				const button = self.get_last_child();
-				if (button) {
-					self.set_measure_overlay(button, true);
-				}
-			}}
+		<button
+			$type="overlay"
+			halign={Gtk.Align.CENTER}
+			cursor={Gdk.Cursor.new_from_name("pointer", null)}
+			onClicked={() => setToggle(!toggle.peek())}
+			class={classNames}
+			tooltipText="RAM Usage"
 		>
-			<levelbar orientation={Gtk.Orientation.HORIZONTAL} minValue={0} maxValue={100} value={mem} />
-			<button
-				$type="overlay"
-				halign={Gtk.Align.CENTER}
-				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				onClicked={() => setToggle(!toggle.peek())}
-				class={classNames}
-				tooltipText="RAM Usage"
-			>
-				<box>
-					<image iconName="indicator-sensors-memory" />
-					<label class="percent" label={label} />
-				</box>
-			</button>
-		</overlay>
+			<box>
+				<image iconName="indicator-sensors-memory" />
+				<label class="percent" label={label} />
+			</box>
+		</button>
 	);
 }
 
@@ -335,10 +311,12 @@ function BatteryUsage() {
 	const charge = createBinding(bat, "percentage");
 
 	const classNames = charge.as((charge) => {
-		if (charge > 0.2) {
-			return "menu healthy";
+		if (charge > 0.3) {
+			return "green";
+		} else if (charge > 0.1) {
+			return "yellow";
 		} else {
-			return "menu unhealthy";
+			return "red";
 		}
 	});
 
@@ -352,29 +330,19 @@ function BatteryUsage() {
 	});
 
 	return (
-		<overlay
-			$={(self) => {
-				const button = self.get_last_child();
-				if (button) {
-					self.set_measure_overlay(button, true);
-				}
-			}}
+		<button
+			$type="overlay"
+			halign={Gtk.Align.CENTER}
+			cursor={Gdk.Cursor.new_from_name("pointer", null)}
+			onClicked={() => setToggle(!toggle.peek())}
+			class={classNames}
+			tooltipText="Battery Usage"
 		>
-			<levelbar orientation={Gtk.Orientation.HORIZONTAL} minValue={0} maxValue={1} value={charge} />
-			<button
-				$type="overlay"
-				halign={Gtk.Align.CENTER}
-				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				onClicked={() => setToggle(!toggle.peek())}
-				class={classNames}
-				tooltipText="Battery Usage"
-			>
-				<box>
-					<image iconName={bat.battery_icon_name} />
-					<label class="percent" label={label} />
-				</box>
-			</button>
-		</overlay>
+			<box>
+				<image iconName={bat.battery_icon_name} />
+				<label class="percent" label={label} />
+			</box>
+		</button>
 	);
 }
 
@@ -384,10 +352,10 @@ function TailscaleWidget(): JSX.Element {
 
 	const classNames = connected.as((connected) => {
 		if (connected) {
-			return "menu healthy";
-		} else {
-			return "menu unhealthy";
+			return "green";
 		}
+
+		return "";
 	});
 
 	return (
@@ -410,10 +378,10 @@ function SyncthingWidget(): JSX.Element {
 
 	const classNames = connected.as((connected) => {
 		if (connected) {
-			return "menu healthy";
-		} else {
-			return "menu unhealthy";
+			return "green";
 		}
+
+		return "";
 	});
 
 	return (
@@ -435,11 +403,15 @@ function SysTray(): JSX.Element {
 	const items = createBinding(tray, "items");
 
 	const init = (btn: Gtk.MenuButton, item: AstalTray.TrayItem) => {
-		btn.menuModel = item.menuModel;
-		btn.insert_action_group("dbusmenu", item.actionGroup);
-		item.connect("notify::action-group", () => {
+		try {
+			btn.menuModel = item.menuModel;
 			btn.insert_action_group("dbusmenu", item.actionGroup);
-		});
+			item.connect("notify::action-group", () => {
+				btn.insert_action_group("dbusmenu", item.actionGroup);
+			});
+		} catch (e) {
+			console.error("Failed to initialize tray item", e);
+		}
 	};
 
 	return (
