@@ -172,7 +172,7 @@
 
         packages.default = pkgs.buildNpmPackage (finalAttrs: {
           pname = "trevbar";
-          version = "0.2.2";
+          version = "0.3.0";
 
           src = fs.toSource {
             root = ./.;
