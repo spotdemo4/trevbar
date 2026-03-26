@@ -1,10 +1,12 @@
-import { createBinding, createComputed, createState, For } from "ags";
+import { createBinding, createComputed, createState, For, With } from "ags";
 import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
 import { execAsync } from "ags/process";
 import { createPoll } from "ags/time";
+import { clsx } from "clsx";
 import Battery from "gi://AstalBattery";
 import Hyprland from "gi://AstalHyprland";
+import Network from "gi://AstalNetwork";
 import Tray from "gi://AstalTray";
 import type AstalTray from "gi://AstalTray";
 import Pango from "gi://Pango?version=1.0";
@@ -114,7 +116,7 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 						onClicked={() => desktop.workspace.focus()}
 						tooltipText={`Workspace ${desktop.workspace.name}`}
 						cursor={Gdk.Cursor.new_from_name("pointer", null)}
-						class={desktop.focused ? "focused" : ""}
+						class={clsx(desktop.focused && "green")}
 					>
 						<Workspace clients={desktop.clients} />
 					</button>
@@ -198,27 +200,21 @@ function CpuUsage(): JSX.Element {
 		}
 	});
 
-	const [toggle, setToggle] = createState(false);
-	const label = createComputed(() => {
-		if (toggle()) {
-			return "CPU";
-		} else {
-			return `${Math.round(cpu())}%`;
-		}
-	});
+	const [showImage, toggle] = createState(true);
+	const showLabel = showImage((t) => !t);
 
 	return (
 		<button
 			$type="overlay"
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			onClicked={() => setToggle(!toggle.peek())}
+			onClicked={() => toggle(!showImage.peek())}
 			class={classNames}
 			tooltipText="CPU Usage"
 		>
 			<box>
-				<image iconName="indicator-sensors-cpu" />
-				<label class="percent" label={label} />
+				<image iconName="indicator-sensors-cpu" visible={showImage} />
+				<label label={`${Math.round(cpu())}%`} visible={showLabel} />
 			</box>
 		</button>
 	);
@@ -238,27 +234,21 @@ function GpuUsage(): JSX.Element {
 		}
 	});
 
-	const [toggle, setToggle] = createState(false);
-	const label = createComputed(() => {
-		if (toggle()) {
-			return "GPU";
-		} else {
-			return `${Math.round(gpu())}%`;
-		}
-	});
+	const [showImage, toggle] = createState(true);
+	const showLabel = showImage((t) => !t);
 
 	return (
 		<button
 			$type="overlay"
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			onClicked={() => setToggle(!toggle.peek())}
+			onClicked={() => toggle(!showImage.peek())}
 			class={classNames}
 			tooltipText="GPU Usage"
 		>
 			<box>
-				<image iconName="indicator-sensors-gpu" />
-				<label class="percent" label={label} />
+				<image iconName="indicator-sensors-gpu" visible={showImage} />
+				<label label={`${Math.round(gpu())}%`} visible={showLabel} />
 			</box>
 		</button>
 	);
@@ -278,27 +268,21 @@ function RamUsage(): JSX.Element {
 		}
 	});
 
-	const [toggle, setToggle] = createState(false);
-	const label = createComputed(() => {
-		if (toggle()) {
-			return "RAM";
-		} else {
-			return `${Math.round(mem())}%`;
-		}
-	});
+	const [showImage, toggle] = createState(true);
+	const showLabel = showImage((t) => !t);
 
 	return (
 		<button
 			$type="overlay"
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			onClicked={() => setToggle(!toggle.peek())}
+			onClicked={() => toggle(!showImage.peek())}
 			class={classNames}
 			tooltipText="RAM Usage"
 		>
 			<box>
-				<image iconName="indicator-sensors-memory" />
-				<label class="percent" label={label} />
+				<image iconName="indicator-sensors-memory" visible={showImage} />
+				<label label={`${Math.round(mem())}%`} visible={showLabel} />
 			</box>
 		</button>
 	);
@@ -320,27 +304,21 @@ function BatteryUsage() {
 		}
 	});
 
-	const [toggle, setToggle] = createState(false);
-	const label = createComputed(() => {
-		if (toggle()) {
-			return "Battery";
-		} else {
-			return `${Math.round(charge() * 100)}%`;
-		}
-	});
+	const [showImage, toggle] = createState(true);
+	const showLabel = showImage((t) => !t);
 
 	return (
 		<button
 			$type="overlay"
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			onClicked={() => setToggle(!toggle.peek())}
+			onClicked={() => toggle(!showImage.peek())}
 			class={classNames}
 			tooltipText="Battery Usage"
 		>
 			<box>
-				<image iconName={bat.battery_icon_name} />
-				<label class="percent" label={label} />
+				<image iconName={bat.battery_icon_name} visible={showImage} />
+				<label label={`${Math.round(charge() * 100)}%`} visible={showLabel} />
 			</box>
 		</button>
 	);
@@ -414,12 +392,27 @@ function SysTray(): JSX.Element {
 		}
 	};
 
+	const network = Network.get_default();
+	const connectivity = createBinding(network, "connectivity");
+	const connectivityClass = connectivity.as((connectivity) => {
+		switch (connectivity) {
+			case Network.Connectivity.FULL:
+				return "green";
+			case Network.Connectivity.LIMITED:
+				return "yellow";
+			case Network.Connectivity.NONE:
+				return "red";
+		}
+
+		return "";
+	});
+
 	return (
 		<box class="tray">
 			<For each={items}>
 				{(item) => (
 					<menubutton
-						class="menu"
+						class={clsx("menu", item.get_title() == "Network" && connectivityClass())}
 						$={(self) => init(self, item)}
 						cursor={Gdk.Cursor.new_from_name("pointer", null)}
 					>
@@ -436,7 +429,7 @@ function Time(): JSX.Element {
 
 	return (
 		<menubutton class="menu" cursor={Gdk.Cursor.new_from_name("pointer", null)}>
-			<label label={time} />
+			<label label={time} class="time" />
 			<popover>
 				<Gtk.Calendar />
 			</popover>

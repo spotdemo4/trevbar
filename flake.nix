@@ -39,11 +39,11 @@
       system: pkgs:
       let
         astalPackages = with ags.packages.${system}; [
-          io
           astal4
           battery
           bluetooth
           hyprland
+          io
           mpris
           network
           tray

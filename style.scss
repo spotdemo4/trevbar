@@ -35,27 +35,28 @@ button {
 	border-style: solid;
 	border-color: $gray;
 
-	&.green {
+	&.green,
+	menubutton.green & {
 		border-color: $green;
 	}
-	&.yellow {
+
+	&.yellow,
+	menubutton.yellow & {
 		border-color: $yellow;
 	}
-	&.red {
+
+	&.red,
+	menubutton.red & {
 		border-color: $red;
 	}
 
-	&.focused {
-		border-color: $green;
-	}
-
-	&:hover {
+	&:hover,
+	menubutton:hover & {
 		border-color: $blue;
 	}
 }
 
 window.Bar {
-	background: transparent;
 	font-weight: bold;
 
 	> centerbox {
@@ -63,7 +64,6 @@ window.Bar {
 		padding-bottom: 3px;
 		padding-left: 3px;
 		padding-right: 3px;
-		background: transparent;
 	}
 
 	.left {
@@ -104,37 +104,22 @@ window.Bar {
 	}
 
 	.right {
-		> * {
+		button {
 			margin-left: 2.5px;
 			margin-right: 2.5px;
 		}
 
-		> button {
-			label.percent {
-				min-width: 35px;
-			}
+		label {
+			font-weight: normal;
 
-			> box > * {
-				margin-left: 2px;
-				margin-right: 2px;
-			}
-
-			> image,
-			> box > image {
-				font-size: $md_button_size;
-			}
-
-			> label,
-			> box > label {
-				font-weight: normal;
+			&.time {
+				color: white;
+				font-weight: bold;
 			}
 		}
 
-		.tray {
-			> * > button {
-				margin-left: 2.5px;
-				margin-right: 2.5px;
-			}
+		image {
+			font-size: $md_button_size;
 		}
 	}
 }
