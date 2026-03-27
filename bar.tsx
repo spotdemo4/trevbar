@@ -190,7 +190,7 @@ function CpuUsage(): JSX.Element {
 	const system = SystemInfo.get_default();
 	const cpu = createBinding(system, "cpu_usage");
 
-	const classNames = cpu.as((usage) => {
+	const color = cpu((usage) => {
 		if (usage < 70) {
 			return "green";
 		} else if (usage < 90) {
@@ -199,23 +199,16 @@ function CpuUsage(): JSX.Element {
 			return "red";
 		}
 	});
-
-	const [showImage, toggle] = createState(true);
-	const showLabel = showImage((t) => !t);
+	const usage = cpu((usage) => Math.round(usage).toString());
 
 	return (
 		<button
-			$type="overlay"
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			onClicked={() => toggle(!showImage.peek())}
-			class={classNames}
-			tooltipText="CPU Usage"
+			class={color}
+			tooltipText={usage}
 		>
-			<box>
-				<image iconName="indicator-sensors-cpu" visible={showImage} />
-				<label label={`${Math.round(cpu())}%`} visible={showLabel} />
-			</box>
+			<image iconName="indicator-sensors-cpu" />
 		</button>
 	);
 }
@@ -224,7 +217,7 @@ function GpuUsage(): JSX.Element {
 	const nvtop = NvTop.get_default();
 	const gpu = createBinding(nvtop, "gpu_usage");
 
-	const classNames = gpu.as((usage) => {
+	const color = gpu((usage) => {
 		if (usage < 70) {
 			return "green";
 		} else if (usage < 90) {
@@ -233,23 +226,16 @@ function GpuUsage(): JSX.Element {
 			return "red";
 		}
 	});
-
-	const [showImage, toggle] = createState(true);
-	const showLabel = showImage((t) => !t);
+	const usage = gpu((usage) => Math.round(usage).toString());
 
 	return (
 		<button
-			$type="overlay"
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			onClicked={() => toggle(!showImage.peek())}
-			class={classNames}
-			tooltipText="GPU Usage"
+			class={color}
+			tooltipText={usage}
 		>
-			<box>
-				<image iconName="indicator-sensors-gpu" visible={showImage} />
-				<label label={`${Math.round(gpu())}%`} visible={showLabel} />
-			</box>
+			<image iconName="indicator-sensors-gpu" />
 		</button>
 	);
 }
@@ -258,7 +244,7 @@ function RamUsage(): JSX.Element {
 	const system = SystemInfo.get_default();
 	const mem = createBinding(system, "mem_usage");
 
-	const classNames = mem.as((usage) => {
+	const color = mem((usage) => {
 		if (usage < 70) {
 			return "green";
 		} else if (usage < 90) {
@@ -267,23 +253,16 @@ function RamUsage(): JSX.Element {
 			return "red";
 		}
 	});
-
-	const [showImage, toggle] = createState(true);
-	const showLabel = showImage((t) => !t);
+	const usage = mem((usage) => Math.round(usage).toString());
 
 	return (
 		<button
-			$type="overlay"
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			onClicked={() => toggle(!showImage.peek())}
-			class={classNames}
-			tooltipText="RAM Usage"
+			class={color}
+			tooltipText={usage}
 		>
-			<box>
-				<image iconName="memory-stick" visible={showImage} />
-				<label label={`${Math.round(mem())}%`} visible={showLabel} />
-			</box>
+			<image iconName="memory-stick" />
 		</button>
 	);
 }
@@ -294,7 +273,7 @@ function BatteryUsage() {
 
 	const charge = createBinding(bat, "percentage");
 
-	const classNames = charge.as((charge) => {
+	const color = charge((charge) => {
 		if (charge > 0.3) {
 			return "green";
 		} else if (charge > 0.1) {
@@ -303,23 +282,16 @@ function BatteryUsage() {
 			return "red";
 		}
 	});
-
-	const [showImage, toggle] = createState(true);
-	const showLabel = showImage((t) => !t);
+	const usage = charge((charge) => `${Math.round(charge * 100)}%`);
 
 	return (
 		<button
-			$type="overlay"
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			onClicked={() => toggle(!showImage.peek())}
-			class={classNames}
-			tooltipText="Battery Usage"
+			class={color}
+			tooltipText={usage}
 		>
-			<box>
-				<image iconName={bat.battery_icon_name} visible={showImage} />
-				<label label={`${Math.round(charge() * 100)}%`} visible={showLabel} />
-			</box>
+			<image iconName={bat.battery_icon_name} />
 		</button>
 	);
 }
@@ -327,21 +299,14 @@ function BatteryUsage() {
 function TailscaleWidget(): JSX.Element {
 	const tailscale = Tailscale.get_default();
 	const connected = createBinding(tailscale, "connected");
-
-	const classNames = connected.as((connected) => {
-		if (connected) {
-			return "green";
-		}
-
-		return "";
-	});
+	const color = connected((connected) => (connected ? "green" : ""));
 
 	return (
 		<box>
 			<button
 				onClicked={() => execAsync("xdg-open https://login.tailscale.com/admin/machines")}
 				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				class={classNames}
+				class={color}
 				tooltipText="Tailscale Status"
 			>
 				<image iconName={getIcon("tailscale")} />
@@ -353,21 +318,14 @@ function TailscaleWidget(): JSX.Element {
 function SyncthingWidget(): JSX.Element {
 	const syncthing = Syncthing.get_default();
 	const connected = createBinding(syncthing, "connected");
-
-	const classNames = connected.as((connected) => {
-		if (connected) {
-			return "green";
-		}
-
-		return "";
-	});
+	const color = connected((connected) => (connected ? "green" : ""));
 
 	return (
 		<box>
 			<button
 				onClicked={() => execAsync("xdg-open http://localhost:8384/")}
 				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				class={classNames}
+				class={color}
 				tooltipText="Syncthing Status"
 			>
 				<image iconName={getIcon("syncthing")} />
@@ -394,7 +352,7 @@ function SysTray(): JSX.Element {
 
 	const network = Network.get_default();
 	const connectivity = createBinding(network, "connectivity");
-	const connectivityClass = connectivity.as((connectivity) => {
+	const connectivityColor = connectivity((connectivity) => {
 		switch (connectivity) {
 			case Network.Connectivity.FULL:
 				return "green";
@@ -402,9 +360,9 @@ function SysTray(): JSX.Element {
 				return "yellow";
 			case Network.Connectivity.NONE:
 				return "red";
+			default:
+				return "";
 		}
-
-		return "";
 	});
 
 	return (
@@ -412,8 +370,8 @@ function SysTray(): JSX.Element {
 			<For each={items}>
 				{(item) => (
 					<menubutton
-						class={clsx("menu", item.get_title() == "Network" && connectivityClass())}
 						$={(self) => init(self, item)}
+						class={clsx("menu", item.get_title() == "Network" && connectivityColor())}
 						cursor={Gdk.Cursor.new_from_name("pointer", null)}
 					>
 						<image gicon={createBinding(item, "gicon")} />

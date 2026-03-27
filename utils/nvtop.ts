@@ -1,6 +1,6 @@
 import GObject, { getter, register } from "ags/gobject";
 import { interval } from "ags/time";
-import { exec } from "ags/process";
+import { execAsync } from "ags/process";
 
 type GpuInfo = {
 	device_name: string;
@@ -38,8 +38,8 @@ export default class NvTop extends GObject.Object {
 		super();
 
 		// Calculate GPU usage
-		interval(2000, () => {
-			const raw = exec("nvtop -s");
+		interval(2000, async () => {
+			const raw = await execAsync("nvtop -s");
 			const info: GpuInfo[] = JSON.parse(raw);
 
 			const first = info.at(0);

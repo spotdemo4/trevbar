@@ -1,5 +1,5 @@
 import GObject, { getter, register } from "ags/gobject";
-import { exec } from "ags/process";
+import { execAsync } from "ags/process";
 import { interval } from "ags/time";
 
 @register({ GTypeName: "Tailscale" })
@@ -22,9 +22,9 @@ export default class Tailscale extends GObject.Object {
 	constructor() {
 		super();
 
-		interval(5000, () => {
+		interval(5000, async () => {
 			try {
-				exec("tailscale status");
+				await execAsync("tailscale status");
 
 				if (!this.#connected) {
 					this.#connected = true;
