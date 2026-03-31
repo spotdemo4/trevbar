@@ -375,7 +375,7 @@ function SysTray(): JSX.Element {
 
 	const network = Network.get_default();
 	const connectivity = createBinding(network, "connectivity");
-	const connectivityColor = connectivity((connectivity) => {
+	const connected = connectivity((connectivity) => {
 		switch (connectivity) {
 			case Network.Connectivity.FULL:
 				return "green";
@@ -391,15 +391,28 @@ function SysTray(): JSX.Element {
 	return (
 		<box class="tray">
 			<For each={items}>
-				{(item) => (
-					<menubutton
-						$={(self) => init(self, item)}
-						class={clsx("menu", item.get_title() == "Network" && connectivityColor())}
-						cursor={Gdk.Cursor.new_from_name("pointer", null)}
-					>
-						<image gicon={createBinding(item, "gicon")} />
-					</menubutton>
-				)}
+				{(item) => {
+					if (item.get_title() == "Network") {
+						return (
+							<menubutton
+								$={(self) => init(self, item)}
+								class={connected}
+								cursor={Gdk.Cursor.new_from_name("pointer", null)}
+							>
+								<image gicon={createBinding(item, "gicon")} />
+							</menubutton>
+						);
+					}
+
+					return (
+						<menubutton
+							$={(self) => init(self, item)}
+							cursor={Gdk.Cursor.new_from_name("pointer", null)}
+						>
+							<image gicon={createBinding(item, "gicon")} />
+						</menubutton>
+					);
+				}}
 			</For>
 		</box>
 	);
