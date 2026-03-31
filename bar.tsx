@@ -1,4 +1,4 @@
-import { createBinding, createComputed, createState, For } from "ags";
+import { Accessor, createBinding, createComputed, createState, For } from "ags";
 import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
 import { execAsync } from "ags/process";
@@ -51,88 +51,52 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
 	);
 }
 
-type Desktop = {
-	workspace: Hyprland.Workspace;
-	clients: Hyprland.Client[];
-	focused: boolean;
-};
-
 function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 	const hypr = Hyprland.get_default();
 	const hyprMonitor = getHyprlandMonitor(monitor);
-	const workspaces = createBinding(hypr, "workspaces");
-
-	const [clients, setClients] = createState(hypr.get_clients());
-	hypr.connect("client-added", (_, client) => {
-		setClients((c) => [...c, client]);
-	});
-	hypr.connect("client-removed", (_, address) => {
-		setClients((c) => c.filter((c) => c.address != address));
-	});
-	hypr.connect("client-moved", (hy) => {
-		setClients(() => hy.get_clients());
-	});
-
-	const focusedWorkspace = createBinding(hypr, "focusedWorkspace");
-
-	const desktops = createComputed(() => {
-		const desktops: Desktop[] = [];
-
-		if (!hyprMonitor) {
-			return [];
-		}
-
-		// Get desktop for each workspace within monitor
-		for (const workspace of workspaces()) {
-			if (workspace.monitor == null) {
-				continue;
-			}
-
-			if (hyprMonitor.id != workspace.monitor.id) {
-				continue;
-			}
-
-			const desktop: Desktop = {
-				workspace: workspace,
-				clients: clients()
-					.filter((client) => client.workspace && client.workspace.id === workspace.id)
-					.sort((a, b) => a.x - b.x),
-				focused: focusedWorkspace() ? workspace.id === focusedWorkspace().id : false,
-			};
-			desktops.push(desktop);
-		}
-
-		// Sort
-		desktops.sort((a, b) => a.workspace.id - b.workspace.id);
-
-		return desktops;
-	});
+	if (!hyprMonitor) {
+		return <box />;
+	}
+	const workspaces = createBinding(
+		hypr,
+		"workspaces",
+	)((w) =>
+		w.filter((workspace) => workspace.monitor.id === hyprMonitor.id).sort((a, b) => a.id - b.id),
+	);
 
 	return (
 		<box class="workspaces">
-			<For each={desktops}>
-				{(desktop) => (
-					<button
-						onClicked={() => desktop.workspace.focus()}
-						tooltipText={`Workspace ${desktop.workspace.name}`}
-						cursor={Gdk.Cursor.new_from_name("pointer", null)}
-						class={clsx(desktop.focused && "green")}
-					>
-						<Workspace clients={desktop.clients} />
-					</button>
-				)}
-			</For>
+			<For each={workspaces}>{(workspace) => <Workspace workspace={workspace} />}</For>
 		</box>
 	);
 }
 
-function Workspace({ clients }: { clients: Hyprland.Client[] }) {
+function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
+	const hypr = Hyprland.get_default();
+	const focused = createBinding(hypr, "focusedWorkspace")((w) => w.id === workspace.id);
+	const clients = createBinding(
+		hypr,
+		"clients",
+	)((c) => c.filter((client) => client.workspace.id === workspace.id).sort((a, b) => a.x - b.x));
+
 	return (
-		<box>
-			{clients.map((client) => (
-				<image iconName={getIcon(client.initialClass, client.title)} tooltipText={client.title} />
-			))}
-		</box>
+		<togglebutton
+			onClicked={() => workspace.focus()}
+			tooltipText={`Workspace ${workspace.name}`}
+			cursor={Gdk.Cursor.new_from_name("pointer", null)}
+			active={focused}
+		>
+			<box>
+				<For each={clients}>
+					{(client) => (
+						<image
+							iconName={getIcon(client.initialClass, client.title)}
+							tooltipText={client.title}
+						/>
+					)}
+				</For>
+			</box>
+		</togglebutton>
 	);
 }
 

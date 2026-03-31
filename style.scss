@@ -54,6 +54,11 @@ button {
 	menubutton:hover & {
 		border-color: $blue;
 	}
+
+	&:checked,
+	menubutton:checked & {
+		border-color: $green;
+	}
 }
 
 window.Bar {
