@@ -3,7 +3,6 @@ import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
 import { execAsync } from "ags/process";
 import { createPoll } from "ags/time";
-import { clsx } from "clsx";
 import Battery from "gi://AstalBattery";
 import Hyprland from "gi://AstalHyprland";
 import Network from "gi://AstalNetwork";
