@@ -28,10 +28,21 @@ export default class NvTop extends GObject.Object {
 	}
 
 	#gpuUsage = 0;
-
 	@getter(Number)
 	get gpu_usage() {
 		return this.#gpuUsage;
+	}
+
+	#encode = 0;
+	@getter(Number)
+	get encode() {
+		return this.#encode;
+	}
+
+	#temp = 0;
+	@getter(Number)
+	get temp() {
+		return this.#temp;
 	}
 
 	constructor() {
@@ -50,6 +61,16 @@ export default class NvTop extends GObject.Object {
 			if (first.gpu_util) {
 				this.#gpuUsage = parseInt(first.gpu_util);
 				this.notify("gpu_usage");
+			}
+
+			if (first.encode_decode) {
+				this.#encode = parseInt(first.encode_decode);
+				this.notify("encode");
+			}
+
+			if (first.temp) {
+				this.#temp = parseInt(first.temp);
+				this.notify("temp");
 			}
 		});
 	}

@@ -152,9 +152,9 @@ function Title(): JSX.Element {
 function CpuUsage(): JSX.Element {
 	const system = SystemInfo.get_default();
 	const cpu = createBinding(system, "cpu_total");
-	const cpu_system = createBinding(system, "cpu_system")((usage) => usage.toString());
-	const cpu_user = createBinding(system, "cpu_user")((usage) => usage.toString());
-	const cpu_total = cpu((usage) => usage.toString());
+	const cpu_usage = cpu((usage) => `${usage.toString()}%`);
+	const cpu_system = createBinding(system, "cpu_system")((usage) => `${usage.toString()}%`);
+	const cpu_user = createBinding(system, "cpu_user")((usage) => `${usage.toString()}%`);
 
 	let prev = "green";
 	const color = cpu((usage) => {
@@ -176,7 +176,7 @@ function CpuUsage(): JSX.Element {
 
 		return animation;
 	});
-	const usage = cpu((usage) => Math.round(usage).toString());
+	const usage = cpu((usage) => `${Math.round(usage).toString()}%`);
 
 	return (
 		<menubutton
@@ -189,16 +189,16 @@ function CpuUsage(): JSX.Element {
 			<popover>
 				<box spacing={4} orientation={Gtk.Orientation.VERTICAL}>
 					<box spacing={16}>
+						<label label="Usage" hexpand halign={Gtk.Align.START} />
+						<label label={cpu_usage} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
 						<label label="System" hexpand halign={Gtk.Align.START} />
 						<label label={cpu_system} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
 						<label label="User" hexpand halign={Gtk.Align.START} />
 						<label label={cpu_user} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="Total" hexpand halign={Gtk.Align.START} />
-						<label label={cpu_total} hexpand halign={Gtk.Align.END} />
 					</box>
 				</box>
 			</popover>
@@ -209,6 +209,9 @@ function CpuUsage(): JSX.Element {
 function GpuUsage(): JSX.Element {
 	const nvtop = NvTop.get_default();
 	const gpu = createBinding(nvtop, "gpu_usage");
+	const gpu_usage = gpu((usage) => `${usage.toString()}%`);
+	const encode_usage = createBinding(nvtop, "encode")((usage) => `${usage.toString()}%`);
+	const temp = createBinding(nvtop, "temp")((temp) => `${temp.toString()}°C`);
 
 	let prev = "green";
 	const color = gpu((usage) => {
@@ -230,23 +233,52 @@ function GpuUsage(): JSX.Element {
 
 		return animation;
 	});
-	const usage = gpu((usage) => Math.round(usage).toString());
+	const usage = gpu((usage) => `${Math.round(usage).toString()}%`);
 
 	return (
-		<button
+		<menubutton
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
 			class={color}
 			tooltipText={usage}
 		>
 			<image iconName="indicator-sensors-gpu" />
-		</button>
+			<popover>
+				<box spacing={4} orientation={Gtk.Orientation.VERTICAL}>
+					<box spacing={16}>
+						<label label="Usage" hexpand halign={Gtk.Align.START} />
+						<label label={gpu_usage} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Encode" hexpand halign={Gtk.Align.START} />
+						<label label={encode_usage} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Temp" hexpand halign={Gtk.Align.START} />
+						<label label={temp} hexpand halign={Gtk.Align.END} />
+					</box>
+				</box>
+			</popover>
+		</menubutton>
 	);
 }
 
 function RamUsage(): JSX.Element {
 	const system = SystemInfo.get_default();
 	const mem = createBinding(system, "mem_usage");
+	const mem_usage = mem((usage) => `${usage.toString()}%`);
+	const cached = createBinding(
+		system,
+		"mem_cached",
+	)((cached) => `${(cached / 1024 / 1024 / 1024).toFixed(2)} GB`);
+	const used = createBinding(
+		system,
+		"mem_used",
+	)((used) => `${(used / 1024 / 1024 / 1024).toFixed(2)} GB`);
+	const free = createBinding(
+		system,
+		"mem_free",
+	)((free) => `${(free / 1024 / 1024 / 1024).toFixed(2)} GB`);
 
 	let prev = "green";
 	const color = mem((usage) => {
@@ -268,17 +300,37 @@ function RamUsage(): JSX.Element {
 
 		return animation;
 	});
-	const usage = mem((usage) => Math.round(usage).toString());
+	const usage = mem((usage) => `${Math.round(usage).toString()}%`);
 
 	return (
-		<button
+		<menubutton
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
 			class={color}
 			tooltipText={usage}
 		>
 			<image iconName="memory-stick" />
-		</button>
+			<popover>
+				<box spacing={4} orientation={Gtk.Orientation.VERTICAL}>
+					<box spacing={16}>
+						<label label="Usage" hexpand halign={Gtk.Align.START} />
+						<label label={mem_usage} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Cached" hexpand halign={Gtk.Align.START} />
+						<label label={cached} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Used" hexpand halign={Gtk.Align.START} />
+						<label label={used} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Free" hexpand halign={Gtk.Align.START} />
+						<label label={free} hexpand halign={Gtk.Align.END} />
+					</box>
+				</box>
+			</popover>
+		</menubutton>
 	);
 }
 
