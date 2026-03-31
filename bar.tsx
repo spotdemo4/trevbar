@@ -1,4 +1,4 @@
-import { Accessor, createBinding, createComputed, createState, For } from "ags";
+import { createBinding, createComputed, For } from "ags";
 import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
 import { execAsync } from "ags/process";
