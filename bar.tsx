@@ -1,4 +1,4 @@
-import { createBinding, createComputed, For } from "ags";
+import { createBinding, createComputed, createEffect, For } from "ags";
 import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
 import { execAsync } from "ags/process";
@@ -152,28 +152,58 @@ function Title(): JSX.Element {
 
 function CpuUsage(): JSX.Element {
 	const system = SystemInfo.get_default();
-	const cpu = createBinding(system, "cpu_usage");
+	const cpu = createBinding(system, "cpu_total");
+	const cpu_system = createBinding(system, "cpu_system")((usage) => usage.toString());
+	const cpu_user = createBinding(system, "cpu_user")((usage) => usage.toString());
+	const cpu_total = cpu((usage) => usage.toString());
 
+	let prev = "green";
 	const color = cpu((usage) => {
-		if (usage < 70) {
-			return "green";
-		} else if (usage < 90) {
-			return "yellow";
+		let next: string;
+		if (usage > 80) {
+			next = "red";
+		} else if (usage > 60) {
+			next = "yellow";
 		} else {
-			return "red";
+			next = "green";
 		}
+
+		if (prev === next) {
+			return prev;
+		}
+
+		const animation = `${prev}-${next}`;
+		prev = next;
+
+		return animation;
 	});
 	const usage = cpu((usage) => Math.round(usage).toString());
 
 	return (
-		<button
+		<menubutton
+			class={color}
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			class={color}
 			tooltipText={usage}
 		>
 			<image iconName="indicator-sensors-cpu" />
-		</button>
+			<popover>
+				<box spacing={4} orientation={Gtk.Orientation.VERTICAL}>
+					<box spacing={16}>
+						<label label="System" hexpand halign={Gtk.Align.START} />
+						<label label={cpu_system} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="User" hexpand halign={Gtk.Align.START} />
+						<label label={cpu_user} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Total" hexpand halign={Gtk.Align.START} />
+						<label label={cpu_total} hexpand halign={Gtk.Align.END} />
+					</box>
+				</box>
+			</popover>
+		</menubutton>
 	);
 }
 
@@ -181,14 +211,25 @@ function GpuUsage(): JSX.Element {
 	const nvtop = NvTop.get_default();
 	const gpu = createBinding(nvtop, "gpu_usage");
 
+	let prev = "green";
 	const color = gpu((usage) => {
-		if (usage < 70) {
-			return "green";
-		} else if (usage < 90) {
-			return "yellow";
+		let next: string;
+		if (usage > 80) {
+			next = "red";
+		} else if (usage > 60) {
+			next = "yellow";
 		} else {
-			return "red";
+			next = "green";
 		}
+
+		if (prev === next) {
+			return prev;
+		}
+
+		const animation = `${prev}-${next}`;
+		prev = next;
+
+		return animation;
 	});
 	const usage = gpu((usage) => Math.round(usage).toString());
 
@@ -208,14 +249,25 @@ function RamUsage(): JSX.Element {
 	const system = SystemInfo.get_default();
 	const mem = createBinding(system, "mem_usage");
 
+	let prev = "green";
 	const color = mem((usage) => {
-		if (usage < 70) {
-			return "green";
-		} else if (usage < 90) {
-			return "yellow";
+		let next: string;
+		if (usage > 80) {
+			next = "red";
+		} else if (usage > 60) {
+			next = "yellow";
 		} else {
-			return "red";
+			next = "green";
 		}
+
+		if (prev === next) {
+			return prev;
+		}
+
+		const animation = `${prev}-${next}`;
+		prev = next;
+
+		return animation;
 	});
 	const usage = mem((usage) => Math.round(usage).toString());
 
@@ -237,14 +289,25 @@ function BatteryUsage() {
 
 	const charge = createBinding(bat, "percentage");
 
+	let prev = "green";
 	const color = charge((charge) => {
-		if (charge > 0.3) {
-			return "green";
-		} else if (charge > 0.1) {
-			return "yellow";
+		let next: string;
+		if (charge < 0.2) {
+			next = "red";
+		} else if (charge < 0.4) {
+			next = "yellow";
 		} else {
-			return "red";
+			next = "green";
 		}
+
+		if (prev === next) {
+			return prev;
+		}
+
+		const animation = `${prev}-${next}`;
+		prev = next;
+
+		return animation;
 	});
 	const usage = charge((charge) => `${Math.round(charge * 100)}%`);
 
@@ -266,16 +329,14 @@ function TailscaleWidget(): JSX.Element {
 	const color = connected((connected) => (connected ? "green" : ""));
 
 	return (
-		<box>
-			<button
-				onClicked={() => execAsync("xdg-open https://login.tailscale.com/admin/machines")}
-				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				class={color}
-				tooltipText="Tailscale Status"
-			>
-				<image iconName={getIcon("tailscale")} />
-			</button>
-		</box>
+		<button
+			onClicked={() => execAsync("xdg-open https://login.tailscale.com/admin/machines")}
+			cursor={Gdk.Cursor.new_from_name("pointer", null)}
+			class={color}
+			tooltipText="Tailscale"
+		>
+			<image iconName={getIcon("tailscale")} />
+		</button>
 	);
 }
 
@@ -285,16 +346,14 @@ function SyncthingWidget(): JSX.Element {
 	const color = connected((connected) => (connected ? "green" : ""));
 
 	return (
-		<box>
-			<button
-				onClicked={() => execAsync("xdg-open http://localhost:8384/")}
-				cursor={Gdk.Cursor.new_from_name("pointer", null)}
-				class={color}
-				tooltipText="Syncthing Status"
-			>
-				<image iconName={getIcon("syncthing")} />
-			</button>
-		</box>
+		<button
+			onClicked={() => execAsync("xdg-open http://localhost:8384/")}
+			cursor={Gdk.Cursor.new_from_name("pointer", null)}
+			class={color}
+			tooltipText="Syncthing"
+		>
+			<image iconName={getIcon("syncthing")} />
+		</button>
 	);
 }
 

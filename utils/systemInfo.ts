@@ -14,14 +14,43 @@ export default class SystemInfo extends GObject.Object {
 		return this.instance;
 	}
 
-	#cpuUsage = 0;
-	#memUsage = 0;
-
+	#cpuUser = 0;
 	@getter(Number)
-	get cpu_usage() {
-		return this.#cpuUsage;
+	get cpu_user() {
+		return this.#cpuUser;
 	}
 
+	#cpuSystem = 0;
+	@getter(Number)
+	get cpu_system() {
+		return this.#cpuSystem;
+	}
+
+	#cpuTotal = 0;
+	@getter(Number)
+	get cpu_total() {
+		return this.#cpuTotal;
+	}
+
+	#memUsed = 0;
+	@getter(Number)
+	get mem_used() {
+		return this.#memUsed;
+	}
+
+	#memCached = 0;
+	@getter(Number)
+	get mem_cached() {
+		return this.#memCached;
+	}
+
+	#memFree = 0;
+	@getter(Number)
+	get mem_free() {
+		return this.#memFree;
+	}
+
+	#memUsage = 0;
 	@getter(Number)
 	get mem_usage() {
 		return this.#memUsage;
@@ -48,25 +77,41 @@ export default class SystemInfo extends GObject.Object {
 			const userUsage = Math.round((100 * userDelta) / totalDelta);
 
 			const user = userUsage;
+			this.#cpuUser = user;
+			this.notify("cpu_user");
+
 			const system = 100 - userUsage - idleUsage;
+			this.#cpuSystem = system;
+			this.notify("cpu_system");
+
 			const total = user + system;
+			this.#cpuTotal = total;
+			this.notify("cpu_total");
 
 			prevUser = SystemInfo.cpu.user;
 			prevIdle = SystemInfo.cpu.idle;
 			prevTotal = SystemInfo.cpu.total;
-
-			this.#cpuUsage = total;
-			this.notify("cpu_usage");
 		});
 
 		// Calculate memory usage
 		interval(2000, () => {
 			GTop.glibtop_get_mem(SystemInfo.memory);
 
-			// This is the wrong way of doing this https://unix.stackexchange.com/questions/499649/is-cached-memory-de-facto-free
-			const availableUsed = SystemInfo.memory.used - SystemInfo.memory.cached;
+			const cached = SystemInfo.memory.cached - SystemInfo.memory.shared;
+			this.#memCached = cached;
+			this.notify("mem_cached");
 
-			this.#memUsage = Math.round((availableUsed / SystemInfo.memory.total) * 100);
+			const used = SystemInfo.memory.used - SystemInfo.memory.buffer - cached;
+			this.#memUsed = used;
+			this.notify("mem_used");
+
+			// This is probably the wrong way of doing this https://unix.stackexchange.com/questions/499649/is-cached-memory-de-facto-free
+			const free = SystemInfo.memory.free + SystemInfo.memory.buffer + cached;
+			this.#memFree = free;
+			this.notify("mem_free");
+
+			const usage = Math.round((used / SystemInfo.memory.total) * 100);
+			this.#memUsage = usage;
 			this.notify("mem_usage");
 		});
 	}

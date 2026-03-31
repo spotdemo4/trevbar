@@ -19,6 +19,28 @@ $sm_button_size: 18px;
 $md_button_size: 18px;
 $lg_button_size: 22px;
 
+$colors: (
+	"green": $green,
+	"yellow": $yellow,
+	"red": $red,
+);
+
+// Generate all keyframe animations
+@each $from-name, $from-color in $colors {
+	@each $to-name, $to-color in $colors {
+		@if $from-name != $to-name {
+			@keyframes #{$from-name}-to-#{$to-name} {
+				from {
+					border-color: $from-color;
+				}
+				to {
+					border-color: $to-color;
+				}
+			}
+		}
+	}
+}
+
 * {
 	outline: none;
 	border: none;
@@ -50,14 +72,26 @@ button {
 		border-color: $red;
 	}
 
-	&:hover,
-	menubutton:hover & {
-		border-color: $blue;
+	@each $from-name, $from-color in $colors {
+		@each $to-name, $to-color in $colors {
+			@if $from-name != $to-name {
+				&.#{$from-name}-#{$to-name},
+				menubutton.#{$from-name}-#{$to-name} & {
+					animation: #{$from-name}-to-#{$to-name} 1s 1;
+					border-color: $to-color;
+				}
+			}
+		}
 	}
 
 	&:checked,
 	menubutton:checked & {
 		border-color: $green;
+	}
+
+	&:hover,
+	menubutton:hover & {
+		border-color: $blue;
 	}
 }
 
