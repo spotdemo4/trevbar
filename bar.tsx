@@ -29,13 +29,13 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
 			application={app}
 		>
 			<centerbox cssName="centerbox">
-				<box $type="start" hexpand halign={Gtk.Align.START} class="left">
+				<box $type="start" hexpand halign={Gtk.Align.START}>
 					<Workspaces monitor={gdkmonitor} />
 				</box>
-				<box $type="center" class="center">
+				<box $type="center">
 					<Title />
 				</box>
-				<box $type="end" hexpand halign={Gtk.Align.END} class="right">
+				<box $type="end" hexpand halign={Gtk.Align.END} class="tray">
 					<CpuUsage />
 					<GpuUsage />
 					<RamUsage />
