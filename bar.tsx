@@ -104,24 +104,21 @@ function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
 function Title(): JSX.Element {
 	const hypr = Hyprland.get_default();
 	const focused = createBinding(hypr, "focusedClient");
+	const clients = createBinding(hypr, "clients");
 
-	const title = focused((client) => {
-		if (client) {
-			return client.title;
-		} else {
-			return "";
-		}
+	const client = createComputed(() => {
+		const f = focused();
+		if (!f) return null;
+
+		const c = clients();
+		return c.find((client) => client.address === f.address) || null;
 	});
 
-	const icon = focused((client) => {
-		if (!client) {
-			return "item-missing-symbolic";
-		}
-
-		return getIcon(client.initialClass, client.title);
-	});
-
-	const available = focused((client) => (client ? true : false));
+	const title = client((client) => client?.title ?? "");
+	const available = client((client) => (client ? true : false));
+	const icon = client((client) =>
+		client ? getIcon(client.initialClass, client.title) : "item-missing-symbolic",
+	);
 
 	return (
 		<box class="title" visible={available}>
