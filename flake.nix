@@ -31,6 +31,7 @@
 
   outputs =
     {
+      self,
       trev,
       ags,
       ...
@@ -57,38 +58,31 @@
             libsoup_3
           ]
           ++ astalPackages;
-
-        deps = with pkgs; [
-          nvtopPackages.intel
-        ];
-
-        node = pkgs.nodejs_24;
-
-        fs = pkgs.lib.fileset;
       in
-      rec {
+      {
         devShells = {
           default = pkgs.mkShell {
+            shellHook = pkgs.shellhook.ref;
             buildInputs = [
               (ags.packages.${system}.default.override {
                 inherit extraPackages;
               })
             ];
-            packages =
-              with pkgs;
-              [
-                node
+            packages = with pkgs; [
+              nodejs_24
 
-                # format
-                nixfmt
+              # deps
+              nvtopPackages.intel
+              lm_sensors
 
-                # util
-                bumper
-                flake-release
-                renovate
-              ]
-              ++ deps;
-            shellHook = pkgs.shellhook.ref;
+              # format
+              nixfmt
+
+              # util
+              bumper
+              flake-release
+              renovate
+            ];
           };
 
           bump = pkgs.mkShell {
@@ -106,29 +100,22 @@
           update = pkgs.mkShell {
             packages = with pkgs; [
               renovate
-
-              # npm i
-              node
+              nodejs_24 # npm i
             ];
           };
 
           vulnerable = pkgs.mkShell {
             packages = with pkgs; [
-              # npm audit
-              node
-
-              # nix
-              flake-checker
-
-              # actions
-              octoscan
+              nodejs_24 # npm audit
+              flake-checker # nix
+              octoscan # actions
             ];
           };
         };
 
         checks = pkgs.mkChecks {
           trevbar = {
-            src = packages.default;
+            src = self.packages.${system}.default;
             script = ''
               npx prettier --check .
               npx eslint --flag unstable_native_nodejs_ts_config .
@@ -138,7 +125,7 @@
           nix = {
             root = ./.;
             filter = file: file.hasExt "nix";
-            deps = with pkgs; [
+            packages = with pkgs; [
               nixfmt
             ];
             forEach = ''
@@ -149,7 +136,7 @@
           renovate = {
             root = ./.github;
             fileset = ./.github/renovate.json;
-            deps = with pkgs; [
+            packages = with pkgs; [
               renovate
             ];
             script = ''
@@ -159,7 +146,7 @@
 
           actions = {
             root = ./.github/workflows;
-            deps = with pkgs; [
+            packages = with pkgs; [
               action-validator
               octoscan
             ];
@@ -170,74 +157,78 @@
           };
         };
 
-        packages.default = pkgs.buildNpmPackage (finalAttrs: {
-          pname = "trevbar";
-          version = "0.4.1";
+        packages.default =
+          with pkgs.lib;
+          pkgs.buildNpmPackage (finalAttrs: {
+            pname = "trevbar";
+            version = "0.4.1";
+            nodejs = pkgs.nodejs_24;
 
-          src = fs.toSource {
-            root = ./.;
-            fileset = fs.difference ./. (
-              fs.unions [
-                ./.github
-                ./.vscode
-                ./flake.nix
-                ./flake.lock
-              ]
-            );
-          };
-
-          nodejs = node;
-
-          npmDeps = pkgs.importNpmLock {
-            npmRoot = ./.;
-            packageSourceOverrides = {
-              "node_modules/ags" = ags.packages.${system}.default;
+            src = fileset.toSource {
+              root = ./.;
+              fileset = fileset.difference ./. (
+                fileset.unions [
+                  ./.github
+                  ./.vscode
+                  ./flake.nix
+                  ./flake.lock
+                ]
+              );
             };
-          };
 
-          npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+            npmDeps = pkgs.importNpmLock {
+              npmRoot = ./.;
+              packageSourceOverrides = {
+                "node_modules/ags" = ags.packages.${system}.default;
+              };
+            };
+            npmConfigHook = pkgs.importNpmLock.npmConfigHook;
 
-          nativeBuildInputs = with pkgs; [
-            wrapGAppsHook3
-            gobject-introspection
-            ags.packages.${system}.default
-          ];
+            nativeBuildInputs = with pkgs; [
+              wrapGAppsHook3
+              gobject-introspection
+              ags.packages.${system}.default
+            ];
 
-          buildInputs = [
-            pkgs.gjs
-          ]
-          ++ extraPackages
-          ++ deps;
+            buildInputs =
+              with pkgs;
+              [
+                gjs
+                nvtopPackages.intel
+                lm_sensors
+              ]
+              ++ extraPackages;
 
-          doCheck = false;
-          dontNpmBuild = true;
+            doCheck = false;
+            dontNpmBuild = true;
 
-          installPhase = ''
-            runHook preInstall
+            installPhase = ''
+              runHook preInstall
 
-            mkdir -p $out/bin
-            mkdir -p $out/share
-            cp -r * $out/share
-            ags bundle app.tsx $out/bin/${finalAttrs.pname} -d "SRC='$out/share'" --gtk 4
+              mkdir -p $out/bin
+              mkdir -p $out/share
+              cp -r * $out/share
+              ags bundle app.tsx $out/bin/${finalAttrs.pname} -d "SRC='$out/share'" --gtk 4
 
-            runHook postInstall
-          '';
+              runHook postInstall
+            '';
 
-          preFixup = ''
-            gappsWrapperArgs+=(
-              --prefix PATH : "${pkgs.nvtopPackages.intel}/bin"
-            )
-          '';
+            preFixup = ''
+              gappsWrapperArgs+=(
+                --prefix PATH : "${pkgs.nvtopPackages.intel}/bin"
+                --prefix PATH : "${pkgs.lm_sensors}/bin"
+              )
+            '';
 
-          meta = {
-            description = "Trev's status bar";
-            mainProgram = "trevbar";
-            homepage = "https://github.com/spotdemo4/trevbar";
-            changelog = "https://github.com/spotdemo4/trevbar/releases/tag/v${finalAttrs.version}";
-            license = pkgs.lib.licenses.mit;
-            platforms = pkgs.lib.platforms.all;
-          };
-        });
+            meta = {
+              description = "Trev's status bar";
+              mainProgram = "trevbar";
+              license = licenses.mit;
+              platforms = platforms.unix;
+              homepage = "https://github.com/spotdemo4/trevbar";
+              changelog = "https://github.com/spotdemo4/trevbar/releases/tag/v${finalAttrs.version}";
+            };
+          });
 
         formatter = pkgs.nixfmt-tree;
       }

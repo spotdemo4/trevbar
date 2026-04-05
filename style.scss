@@ -13,6 +13,7 @@ $colors: (
 	"green": $green,
 	"yellow": $yellow,
 	"red": $red,
+	"gray": $gray,
 );
 
 // Generate all keyframe animations
@@ -49,24 +50,26 @@ $colors: (
 
 	> button {
 		background-image: none;
+		background-color: transparent;
 	}
 
 	&.green {
 		border-color: $green;
 	}
-
 	&.yellow {
 		border-color: $yellow;
 	}
-
 	&.red {
 		border-color: $red;
+	}
+	&.gray {
+		border-color: $gray;
 	}
 
 	@each $from-name, $from-color in $colors {
 		@each $to-name, $to-color in $colors {
 			@if $from-name != $to-name {
-				&.#{$from-name}-#{$to-name} {
+				&.#{$from-name}-to-#{$to-name} {
 					animation: #{$from-name}-to-#{$to-name} 1s 1;
 					border-color: $to-color;
 				}
@@ -139,6 +142,7 @@ window.Bar {
 
 		.time {
 			color: white;
+			font-weight: bold;
 		}
 
 		image {

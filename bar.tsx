@@ -9,9 +9,11 @@ import Network from "gi://AstalNetwork";
 import Tray from "gi://AstalTray";
 import type AstalTray from "gi://AstalTray";
 import Pango from "gi://Pango?version=1.0";
+import { animate } from "./utils/animate";
 import NvTop from "./utils/nvtop";
+import Sensors from "./utils/sensors";
 import Syncthing from "./utils/syncthing";
-import SystemInfo from "./utils/systemInfo";
+import System from "./utils/system";
 import Tailscale from "./utils/tailscale";
 import { getHyprlandMonitor, getIcon } from "./utils/utils";
 
@@ -103,102 +105,88 @@ function Title(): JSX.Element {
 	const hypr = Hyprland.get_default();
 	const focused = createBinding(hypr, "focusedClient");
 
-	const focusedClient = createComputed(() => {
-		if (focused()) {
-			return focused();
-		}
-
-		const client = hypr.get_focused_client();
+	const title = focused((client) => {
 		if (client) {
-			return client;
+			return client.title;
+		} else {
+			return "";
 		}
-
-		return null;
 	});
 
-	const clientIcon = focusedClient.as((c) => {
-		if (!c) {
+	const icon = focused((client) => {
+		if (!client) {
 			return "item-missing-symbolic";
 		}
 
-		const icon = getIcon(c.initialClass, c.title);
-		return icon;
+		return getIcon(client.initialClass, client.title);
 	});
 
-	const clientTitle = focusedClient.as((c) => {
-		if (!c || !c.title) {
-			return "n/a";
-		}
-
-		return c.title;
-	});
-
-	const clientAvailable = focusedClient.as((c) => {
-		if (!c || !c.title) {
-			return false;
-		}
-
-		return true;
-	});
+	const available = focused((client) => (client ? true : false));
 
 	return (
-		<box class="title" visible={clientAvailable}>
-			<image iconName={clientIcon} />
-			<label valign={Gtk.Align.CENTER} label={clientTitle} ellipsize={Pango.EllipsizeMode.END} />
+		<box class="title" visible={available}>
+			<image iconName={icon} />
+			<label valign={Gtk.Align.CENTER} label={title} ellipsize={Pango.EllipsizeMode.END} />
 		</box>
 	);
 }
 
 function CpuUsage(): JSX.Element {
-	const system = SystemInfo.get_default();
-	const cpu = createBinding(system, "cpu_total");
-	const cpu_usage = cpu((usage) => `${usage.toString()}%`);
-	const cpu_system = createBinding(system, "cpu_system")((usage) => `${usage.toString()}%`);
-	const cpu_user = createBinding(system, "cpu_user")((usage) => `${usage.toString()}%`);
+	const system = System.get_default();
+	const sensors = Sensors.get_default();
 
-	let prev = "green";
-	const color = cpu((usage) => {
-		let next: string;
-		if (usage > 80) {
-			next = "red";
-		} else if (usage > 60) {
-			next = "yellow";
-		} else {
-			next = "green";
-		}
+	const usage = createBinding(system, "cpu_total");
+	const usage_str = usage((usage) => `${usage.toString()}%`);
 
-		if (prev === next) {
-			return prev;
-		}
+	const system_str = createBinding(system, "cpu_system")((usage) => `${usage.toString()}%`);
+	const user_str = createBinding(system, "cpu_user")((usage) => `${usage.toString()}%`);
 
-		const animation = `${prev}-${next}`;
-		prev = next;
+	const temp = createBinding(sensors, "cpu_temp");
+	const temp_max = createBinding(sensors, "cpu_max");
+	const temp_available = temp((temp) => temp > 0);
+	const temp_str = temp((temp) => `${temp.toString()}°C`);
 
-		return animation;
-	});
-	const usage = cpu((usage) => `${Math.round(usage).toString()}%`);
+	const color = createComputed(() =>
+		animate("cpu", () => {
+			const u = usage();
+			const t = temp();
+			const m = temp_max();
+
+			if (u > 80 || t > m) {
+				return "red";
+			} else if (u > 60 || t > m * 0.8) {
+				return "yellow";
+			} else {
+				return "green";
+			}
+		}),
+	);
 
 	return (
 		<menubutton
 			class={color}
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			tooltipText={usage}
+			tooltipText={usage_str}
 		>
 			<image iconName="indicator-sensors-cpu" />
 			<popover>
 				<box spacing={4} orientation={Gtk.Orientation.VERTICAL}>
 					<box spacing={16}>
 						<label label="Usage" hexpand halign={Gtk.Align.START} />
-						<label label={cpu_usage} hexpand halign={Gtk.Align.END} />
+						<label label={usage_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16} visible={temp_available}>
+						<label label="Temp" hexpand halign={Gtk.Align.START} />
+						<label label={temp_str} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
 						<label label="System" hexpand halign={Gtk.Align.START} />
-						<label label={cpu_system} hexpand halign={Gtk.Align.END} />
+						<label label={system_str} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
 						<label label="User" hexpand halign={Gtk.Align.START} />
-						<label label={cpu_user} hexpand halign={Gtk.Align.END} />
+						<label label={user_str} hexpand halign={Gtk.Align.END} />
 					</box>
 				</box>
 			</popover>
@@ -208,54 +196,49 @@ function CpuUsage(): JSX.Element {
 
 function GpuUsage(): JSX.Element {
 	const nvtop = NvTop.get_default();
-	const gpu = createBinding(nvtop, "gpu_usage");
-	const gpu_usage = gpu((usage) => `${usage.toString()}%`);
-	const encode_usage = createBinding(nvtop, "encode")((usage) => `${usage.toString()}%`);
-	const temp = createBinding(nvtop, "temp")((temp) => `${temp.toString()}°C`);
 
-	let prev = "green";
-	const color = gpu((usage) => {
-		let next: string;
-		if (usage > 80) {
-			next = "red";
-		} else if (usage > 60) {
-			next = "yellow";
-		} else {
-			next = "green";
-		}
+	const usage = createBinding(nvtop, "usage");
+	const usage_str = usage((usage) => `${usage.toString()}%`);
 
-		if (prev === next) {
-			return prev;
-		}
+	const temp = createBinding(nvtop, "temp");
+	const temp_available = temp((temp) => temp > 0);
+	const temp_str = temp((temp) => `${temp.toString()}°C`);
 
-		const animation = `${prev}-${next}`;
-		prev = next;
+	const encode_str = createBinding(nvtop, "encode")((usage) => `${usage.toString()}%`);
 
-		return animation;
-	});
-	const usage = gpu((usage) => `${Math.round(usage).toString()}%`);
+	const color = usage((usage) =>
+		animate("gpu", () => {
+			if (usage > 80) {
+				return "red";
+			} else if (usage > 60) {
+				return "yellow";
+			} else {
+				return "green";
+			}
+		}),
+	);
 
 	return (
 		<menubutton
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
 			class={color}
-			tooltipText={usage}
+			tooltipText={usage_str}
 		>
 			<image iconName="indicator-sensors-gpu" />
 			<popover>
 				<box spacing={4} orientation={Gtk.Orientation.VERTICAL}>
 					<box spacing={16}>
 						<label label="Usage" hexpand halign={Gtk.Align.START} />
-						<label label={gpu_usage} hexpand halign={Gtk.Align.END} />
+						<label label={usage_str} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
 						<label label="Encode" hexpand halign={Gtk.Align.START} />
-						<label label={encode_usage} hexpand halign={Gtk.Align.END} />
+						<label label={encode_str} hexpand halign={Gtk.Align.END} />
 					</box>
-					<box spacing={16}>
+					<box spacing={16} visible={temp_available}>
 						<label label="Temp" hexpand halign={Gtk.Align.START} />
-						<label label={temp} hexpand halign={Gtk.Align.END} />
+						<label label={temp_str} hexpand halign={Gtk.Align.END} />
 					</box>
 				</box>
 			</popover>
@@ -264,69 +247,60 @@ function GpuUsage(): JSX.Element {
 }
 
 function RamUsage(): JSX.Element {
-	const system = SystemInfo.get_default();
-	const mem = createBinding(system, "mem_usage");
-	const mem_usage = mem((usage) => `${usage.toString()}%`);
-	const cached = createBinding(
+	const system = System.get_default();
+	const usage = createBinding(system, "mem_usage");
+
+	const usage_str = usage((usage) => `${usage.toString()}%`);
+	const cached_str = createBinding(
 		system,
 		"mem_cached",
 	)((cached) => `${(cached / 1024 / 1024 / 1024).toFixed(2)} GB`);
-	const used = createBinding(
+	const used_str = createBinding(
 		system,
 		"mem_used",
 	)((used) => `${(used / 1024 / 1024 / 1024).toFixed(2)} GB`);
-	const free = createBinding(
+	const free_str = createBinding(
 		system,
 		"mem_free",
 	)((free) => `${(free / 1024 / 1024 / 1024).toFixed(2)} GB`);
 
-	let prev = "green";
-	const color = mem((usage) => {
-		let next: string;
-		if (usage > 80) {
-			next = "red";
-		} else if (usage > 60) {
-			next = "yellow";
-		} else {
-			next = "green";
-		}
-
-		if (prev === next) {
-			return prev;
-		}
-
-		const animation = `${prev}-${next}`;
-		prev = next;
-
-		return animation;
-	});
-	const usage = mem((usage) => `${Math.round(usage).toString()}%`);
+	const color = usage((usage) =>
+		animate("memory", () => {
+			if (usage > 80) {
+				return "red";
+			} else if (usage > 60) {
+				return "yellow";
+			} else {
+				return "green";
+			}
+		}),
+	);
 
 	return (
 		<menubutton
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
 			class={color}
-			tooltipText={usage}
+			tooltipText={usage_str}
 		>
 			<image iconName="memory-stick" />
 			<popover>
 				<box spacing={4} orientation={Gtk.Orientation.VERTICAL}>
 					<box spacing={16}>
 						<label label="Usage" hexpand halign={Gtk.Align.START} />
-						<label label={mem_usage} hexpand halign={Gtk.Align.END} />
+						<label label={usage_str} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
 						<label label="Cached" hexpand halign={Gtk.Align.START} />
-						<label label={cached} hexpand halign={Gtk.Align.END} />
+						<label label={cached_str} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
 						<label label="Used" hexpand halign={Gtk.Align.START} />
-						<label label={used} hexpand halign={Gtk.Align.END} />
+						<label label={used_str} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
 						<label label="Free" hexpand halign={Gtk.Align.START} />
-						<label label={free} hexpand halign={Gtk.Align.END} />
+						<label label={free_str} hexpand halign={Gtk.Align.END} />
 					</box>
 				</box>
 			</popover>
@@ -340,34 +314,25 @@ function BatteryUsage() {
 
 	const charge = createBinding(bat, "percentage");
 
-	let prev = "green";
-	const color = charge((charge) => {
-		let next: string;
-		if (charge < 0.2) {
-			next = "red";
-		} else if (charge < 0.4) {
-			next = "yellow";
-		} else {
-			next = "green";
-		}
-
-		if (prev === next) {
-			return prev;
-		}
-
-		const animation = `${prev}-${next}`;
-		prev = next;
-
-		return animation;
-	});
-	const usage = charge((charge) => `${Math.round(charge * 100)}%`);
+	const color = charge((charge) =>
+		animate("battery", () => {
+			if (charge < 0.2) {
+				return "red";
+			} else if (charge < 0.4) {
+				return "yellow";
+			} else {
+				return "green";
+			}
+		}),
+	);
+	const usage_str = charge((charge) => `${Math.round(charge * 100)}%`);
 
 	return (
 		<button
 			halign={Gtk.Align.CENTER}
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
 			class={color}
-			tooltipText={usage}
+			tooltipText={usage_str}
 		>
 			<image iconName={bat.battery_icon_name} />
 		</button>
@@ -377,7 +342,10 @@ function BatteryUsage() {
 function TailscaleWidget(): JSX.Element {
 	const tailscale = Tailscale.get_default();
 	const connected = createBinding(tailscale, "connected");
-	const color = connected((connected) => (connected ? "green" : ""));
+
+	const color = connected((connected) =>
+		animate("tailscale", () => (connected ? "green" : "gray")),
+	);
 
 	return (
 		<button
@@ -394,7 +362,10 @@ function TailscaleWidget(): JSX.Element {
 function SyncthingWidget(): JSX.Element {
 	const syncthing = Syncthing.get_default();
 	const connected = createBinding(syncthing, "connected");
-	const color = connected((connected) => (connected ? "green" : ""));
+
+	const color = connected((connected) =>
+		animate("syncthing", () => (connected ? "green" : "gray")),
+	);
 
 	return (
 		<button
@@ -426,18 +397,20 @@ function SysTray(): JSX.Element {
 
 	const network = Network.get_default();
 	const connectivity = createBinding(network, "connectivity");
-	const connected = connectivity((connectivity) => {
-		switch (connectivity) {
-			case Network.Connectivity.FULL:
-				return "green";
-			case Network.Connectivity.LIMITED:
-				return "yellow";
-			case Network.Connectivity.NONE:
-				return "red";
-			default:
-				return "";
-		}
-	});
+	const connected = connectivity((connectivity) =>
+		animate("network", () => {
+			switch (connectivity) {
+				case Network.Connectivity.FULL:
+					return "green";
+				case Network.Connectivity.LIMITED:
+					return "yellow";
+				case Network.Connectivity.NONE:
+					return "red";
+				default:
+					return "gray";
+			}
+		}),
+	);
 
 	return (
 		<box class="tray">
