@@ -1,21 +1,30 @@
-const previousColors = new Map<string, string>();
+type Transition = {
+	from: string;
+	to: string;
+};
+
+const transitions = new Map<string, Transition>();
 
 export function animate(name: string, colorFunc: () => string) {
-	const color = colorFunc();
+	const next_color = colorFunc();
 
-	if (!previousColors.has(name)) {
-		previousColors.set(name, color);
-		return color;
+	if (!transitions.has(name)) {
+		transitions.set(name, { from: "gray", to: next_color });
+		return next_color;
 	}
 
-	const previousColor = previousColors.get(name);
+	const last_transition = transitions.get(name)!;
 
-	if (previousColor === color) {
-		return color;
+	if (last_transition.to === next_color) {
+		return transitionString(last_transition);
 	}
 
-	previousColors.set(name, color);
-	console.log(`Animating ${name} from ${previousColor} to ${color}`);
+	transitions.set(name, { from: last_transition.to, to: next_color });
+	console.log(`Animating ${name} from ${last_transition.to} to ${next_color}`);
 
-	return `${previousColor}-to-${color}`;
+	return transitionString(transitions.get(name)!);
+}
+
+function transitionString(t: Transition) {
+	return `${t.from}-to-${t.to}`;
 }
