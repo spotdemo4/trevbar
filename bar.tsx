@@ -3,6 +3,7 @@ import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
 import { execAsync } from "ags/process";
 import { createPoll } from "ags/time";
+import { partial } from "filesize";
 import Battery from "gi://AstalBattery";
 import Hyprland from "gi://AstalHyprland";
 import Network from "gi://AstalNetwork";
@@ -16,6 +17,8 @@ import Syncthing from "./utils/syncthing";
 import System from "./utils/system";
 import Tailscale from "./utils/tailscale";
 import { getHyprlandMonitor, getIcon } from "./utils/utils";
+
+const formatBinary = partial({ standard: "iec" });
 
 export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
 	const { TOP, LEFT, RIGHT } = Astal.WindowAnchor;
@@ -41,6 +44,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
 					<CpuUsage />
 					<GpuUsage />
 					<RamUsage />
+					<DiskUsage />
 					<BatteryUsage />
 					<TailscaleWidget />
 					<SyncthingWidget />
@@ -133,15 +137,19 @@ function CpuUsage(): JSX.Element {
 	const sensors = Sensors.get_default();
 
 	const usage = createBinding(system, "cpu_total");
-	const usage_str = usage((usage) => `${usage.toString()}%`);
+	const usage_str = usage((usage) => `${Math.round(usage)}%`);
 
-	const system_str = createBinding(system, "cpu_system")((usage) => `${usage.toString()}%`);
-	const user_str = createBinding(system, "cpu_user")((usage) => `${usage.toString()}%`);
+	const user_str = createBinding(system, "cpu_user")((usage) => `${Math.round(usage)}%`);
+	const system_str = createBinding(system, "cpu_system")((usage) => `${Math.round(usage)}%`);
+	const iowait_str = createBinding(system, "cpu_iowait")((usage) => `${Math.round(usage)}%`);
+	const irq_str = createBinding(system, "cpu_irq")((usage) => `${Math.round(usage)}%`);
+	const softirq_str = createBinding(system, "cpu_softirq")((usage) => `${Math.round(usage)}%`);
+	const nice_str = createBinding(system, "cpu_nice")((usage) => `${Math.round(usage)}%`);
 
 	const temp = createBinding(sensors, "cpu_temp");
 	const temp_max = createBinding(sensors, "cpu_max");
 	const temp_available = temp((temp) => temp > 0);
-	const temp_str = temp((temp) => `${temp.toString()}°C`);
+	const temp_str = temp((temp) => `${Math.round(temp)}°C`);
 
 	const color = createComputed(() =>
 		animate("cpu", () => {
@@ -166,9 +174,9 @@ function CpuUsage(): JSX.Element {
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
 			tooltipText={usage_str}
 		>
-			<image iconName="indicator-sensors-cpu" />
+			<image iconName="lucide-cpu" />
 			<popover>
-				<box spacing={4} orientation={Gtk.Orientation.VERTICAL}>
+				<box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
 					<box spacing={16}>
 						<label label="Usage" hexpand halign={Gtk.Align.START} />
 						<label label={usage_str} hexpand halign={Gtk.Align.END} />
@@ -178,12 +186,28 @@ function CpuUsage(): JSX.Element {
 						<label label={temp_str} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
+						<label label="User" hexpand halign={Gtk.Align.START} />
+						<label label={user_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
 						<label label="System" hexpand halign={Gtk.Align.START} />
 						<label label={system_str} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
-						<label label="User" hexpand halign={Gtk.Align.START} />
-						<label label={user_str} hexpand halign={Gtk.Align.END} />
+						<label label="IOWait" hexpand halign={Gtk.Align.START} />
+						<label label={iowait_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="IRQ" hexpand halign={Gtk.Align.START} />
+						<label label={irq_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="SoftIRQ" hexpand halign={Gtk.Align.START} />
+						<label label={softirq_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Nice" hexpand halign={Gtk.Align.START} />
+						<label label={nice_str} hexpand halign={Gtk.Align.END} />
 					</box>
 				</box>
 			</popover>
@@ -195,13 +219,21 @@ function GpuUsage(): JSX.Element {
 	const nvtop = NvTop.get_default();
 
 	const usage = createBinding(nvtop, "usage");
-	const usage_str = usage((usage) => `${usage.toString()}%`);
+	const usage_str = usage((usage) => `${usage}%`);
+
+	const clock = createBinding(nvtop, "clock");
+	const clock_available = clock((clock) => clock > 0);
+	const clock_str = clock((clock) => `${clock} MHz`);
+
+	const power = createBinding(nvtop, "power");
+	const power_available = power((power) => power > 0);
+	const power_str = power((power) => `${power} W`);
 
 	const temp = createBinding(nvtop, "temp");
 	const temp_available = temp((temp) => temp > 0);
-	const temp_str = temp((temp) => `${temp.toString()}°C`);
+	const temp_str = temp((temp) => `${temp}°C`);
 
-	const encode_str = createBinding(nvtop, "encode")((usage) => `${usage.toString()}%`);
+	const encode_str = createBinding(nvtop, "encode")((usage) => `${usage}%`);
 
 	const color = usage((usage) =>
 		animate("gpu", () => {
@@ -222,20 +254,28 @@ function GpuUsage(): JSX.Element {
 			class={color}
 			tooltipText={usage_str}
 		>
-			<image iconName="indicator-sensors-gpu" />
+			<image iconName="lucide-gpu" />
 			<popover>
-				<box spacing={4} orientation={Gtk.Orientation.VERTICAL}>
+				<box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
 					<box spacing={16}>
 						<label label="Usage" hexpand halign={Gtk.Align.START} />
 						<label label={usage_str} hexpand halign={Gtk.Align.END} />
 					</box>
-					<box spacing={16}>
-						<label label="Encode" hexpand halign={Gtk.Align.START} />
-						<label label={encode_str} hexpand halign={Gtk.Align.END} />
-					</box>
 					<box spacing={16} visible={temp_available}>
 						<label label="Temp" hexpand halign={Gtk.Align.START} />
 						<label label={temp_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16} visible={clock_available}>
+						<label label="Clock" hexpand halign={Gtk.Align.START} />
+						<label label={clock_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16} visible={power_available}>
+						<label label="Power" hexpand halign={Gtk.Align.START} />
+						<label label={power_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Encoder" hexpand halign={Gtk.Align.START} />
+						<label label={encode_str} hexpand halign={Gtk.Align.END} />
 					</box>
 				</box>
 			</popover>
@@ -245,27 +285,30 @@ function GpuUsage(): JSX.Element {
 
 function RamUsage(): JSX.Element {
 	const system = System.get_default();
+	const sensors = Sensors.get_default();
+
 	const usage = createBinding(system, "mem_usage");
+	const usage_str = usage((usage) => `${Math.round(usage)}%`);
 
-	const usage_str = usage((usage) => `${usage.toString()}%`);
-	const cached_str = createBinding(
-		system,
-		"mem_cached",
-	)((cached) => `${(cached / 1024 / 1024 / 1024).toFixed(2)} GB`);
-	const used_str = createBinding(
-		system,
-		"mem_used",
-	)((used) => `${(used / 1024 / 1024 / 1024).toFixed(2)} GB`);
-	const free_str = createBinding(
-		system,
-		"mem_free",
-	)((free) => `${(free / 1024 / 1024 / 1024).toFixed(2)} GB`);
+	const cached_str = createBinding(system, "mem_cached")((cached) => formatBinary(cached));
+	const used_str = createBinding(system, "mem_used")((used) => formatBinary(used));
+	const free_str = createBinding(system, "mem_free")((free) => formatBinary(free));
+	const avail_str = createBinding(system, "mem_available")((avail) => formatBinary(avail));
 
-	const color = usage((usage) =>
+	const temp = createBinding(sensors, "mem_temp");
+	const temp_max = createBinding(sensors, "mem_max");
+	const temp_available = temp((temp) => temp > 0);
+	const temp_str = temp((temp) => `${Math.round(temp)}°C`);
+
+	const color = createComputed(() =>
 		animate("memory", () => {
-			if (usage > 80) {
+			const u = usage();
+			const t = temp();
+			const m = temp_max();
+
+			if (u > 80 || t > m) {
 				return "red";
-			} else if (usage > 60) {
+			} else if (u > 60 || t > m * 0.8) {
 				return "yellow";
 			} else {
 				return "green";
@@ -280,24 +323,88 @@ function RamUsage(): JSX.Element {
 			class={color}
 			tooltipText={usage_str}
 		>
-			<image iconName="memory-stick" />
+			<image iconName="lucide-memory-stick" />
 			<popover>
-				<box spacing={4} orientation={Gtk.Orientation.VERTICAL}>
+				<box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
 					<box spacing={16}>
 						<label label="Usage" hexpand halign={Gtk.Align.START} />
 						<label label={usage_str} hexpand halign={Gtk.Align.END} />
 					</box>
-					<box spacing={16}>
-						<label label="Cached" hexpand halign={Gtk.Align.START} />
-						<label label={cached_str} hexpand halign={Gtk.Align.END} />
+					<box spacing={16} visible={temp_available}>
+						<label label="Temp" hexpand halign={Gtk.Align.START} />
+						<label label={temp_str} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
 						<label label="Used" hexpand halign={Gtk.Align.START} />
 						<label label={used_str} hexpand halign={Gtk.Align.END} />
 					</box>
 					<box spacing={16}>
+						<label label="Available" hexpand halign={Gtk.Align.START} />
+						<label label={avail_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Cached" hexpand halign={Gtk.Align.START} />
+						<label label={cached_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
 						<label label="Free" hexpand halign={Gtk.Align.START} />
 						<label label={free_str} hexpand halign={Gtk.Align.END} />
+					</box>
+				</box>
+			</popover>
+		</menubutton>
+	);
+}
+
+function DiskUsage(): JSX.Element {
+	const system = System.get_default();
+	const sensors = Sensors.get_default();
+
+	const read = createBinding(system, "disk_read");
+	const read_str = read((read) => `${formatBinary(read)}/s`);
+	const write = createBinding(system, "disk_write");
+	const write_str = write((write) => `${formatBinary(write)}/s`);
+
+	const temp = createBinding(sensors, "disk_temp");
+	const temp_max = createBinding(sensors, "disk_max");
+	const temp_available = temp((temp) => temp > 0);
+	const temp_str = temp((temp) => `${Math.round(temp)}°C`);
+
+	const color = createComputed(() =>
+		animate("disk", () => {
+			const t = temp();
+			const m = temp_max();
+
+			if (t > m) {
+				return "red";
+			} else if (t > m * 0.8) {
+				return "yellow";
+			} else {
+				return "green";
+			}
+		}),
+	);
+
+	return (
+		<menubutton
+			halign={Gtk.Align.CENTER}
+			cursor={Gdk.Cursor.new_from_name("pointer", null)}
+			class={color}
+		>
+			<image iconName="hard-drive" />
+			<popover>
+				<box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
+					<box spacing={16} visible={temp_available}>
+						<label label="Temp" hexpand halign={Gtk.Align.START} />
+						<label label={temp_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Read" hexpand halign={Gtk.Align.START} />
+						<label label={read_str} hexpand halign={Gtk.Align.END} />
+					</box>
+					<box spacing={16}>
+						<label label="Write" hexpand halign={Gtk.Align.START} />
+						<label label={write_str} hexpand halign={Gtk.Align.END} />
 					</box>
 				</box>
 			</popover>

@@ -45,6 +45,18 @@ export default class NvTop extends GObject.Object {
 		return this.#temp;
 	}
 
+	#clock = 0;
+	@getter(Number)
+	get clock() {
+		return this.#clock;
+	}
+
+	#power = 0;
+	@getter(Number)
+	get power() {
+		return this.#power;
+	}
+
 	constructor() {
 		super();
 
@@ -79,6 +91,22 @@ export default class NvTop extends GObject.Object {
 				if (temp !== this.#temp) {
 					this.#temp = temp;
 					this.notify("temp");
+				}
+			}
+
+			if (first.gpu_clock) {
+				const clock = parseInt(first.gpu_clock);
+				if (clock !== this.#clock) {
+					this.#clock = clock;
+					this.notify("clock");
+				}
+			}
+
+			if (first.power_draw) {
+				const power = parseInt(first.power_draw);
+				if (power !== this.#power) {
+					this.#power = power;
+					this.notify("power");
 				}
 			}
 		});
