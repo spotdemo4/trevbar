@@ -13,7 +13,7 @@ jobs:
   npm:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Initialize
         uses: spotdemo4/nix-init@32b128f67703e246a0895d72d65ae455bf38d559 # v1.41.0
         with:
           shell: vulnerable
@@ -24,7 +24,7 @@ jobs:
   nix:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Initialize
         uses: spotdemo4/nix-init@32b128f67703e246a0895d72d65ae455bf38d559 # v1.41.0
         with:
           shell: vulnerable
@@ -35,7 +35,7 @@ jobs:
   actions:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Initialize
         uses: spotdemo4/nix-init@32b128f67703e246a0895d72d65ae455bf38d559 # v1.41.0
         with:
           shell: vulnerable

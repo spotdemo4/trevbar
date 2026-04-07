@@ -3,11 +3,9 @@
 [![check](https://github.com/spotdemo4/trevbar/actions/workflows/check.yaml/badge.svg?branch=main)](https://github.com/spotdemo4/trevbar/actions/workflows/check.yaml)
 [![vulnerable](https://github.com/spotdemo4/trevbar/actions/workflows/vulnerable.yaml/badge.svg?branch=main)](https://github.com/spotdemo4/trevbar/actions/workflows/vulnerable.yaml)
 
-opinionated status bar for [hyprland](https://hypr.land/)
-
 ![example](https://i.imgur.com/PXb8bNy.png)
 
-made with [ags](https://github.com/Aylur/ags)
+opinionated status bar for [hyprland](https://hypr.land/) made with [ags](https://github.com/Aylur/ags)
 
 ### nix
 
