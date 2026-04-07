@@ -396,7 +396,7 @@ function DiskUsage(): JSX.Element {
 			cursor={Gdk.Cursor.new_from_name("pointer", null)}
 			class={color}
 		>
-			<image iconName="hard-drive" />
+			<image iconName="lucide-hard-drive" />
 			<popover>
 				<box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
 					<box spacing={16}>
