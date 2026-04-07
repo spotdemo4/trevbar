@@ -167,6 +167,7 @@
             src = fileset.toSource {
               root = ./.;
               fileset = fileset.unions [
+                ./.gitignore
                 ./.npmrc
                 ./env.d.ts
                 ./eslint.config.ts
