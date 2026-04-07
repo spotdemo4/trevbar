@@ -9,20 +9,29 @@ export function animate(name: string, colorFunc: () => string) {
 	const next_color = colorFunc();
 
 	if (!transitions.has(name)) {
-		transitions.set(name, { from: "gray", to: next_color });
-		return next_color;
+		const next_transition: Transition = {
+			from: "gray",
+			to: next_color,
+		};
+		transitions.set(name, next_transition);
+
+		return transitionString(next_transition);
 	}
 
 	const last_transition = transitions.get(name)!;
-
 	if (last_transition.to === next_color) {
 		return transitionString(last_transition);
 	}
 
-	transitions.set(name, { from: last_transition.to, to: next_color });
-	console.log(`Animating ${name} from ${last_transition.to} to ${next_color}`);
+	const next_transition: Transition = {
+		from: last_transition.to,
+		to: next_color,
+	};
+	transitions.set(name, next_transition);
 
-	return transitionString(transitions.get(name)!);
+	console.log(`Animating ${name} from ${next_transition.from} to ${next_transition.to}`);
+
+	return transitionString(next_transition);
 }
 
 function transitionString(t: Transition) {
