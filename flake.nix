@@ -166,14 +166,18 @@
 
             src = fileset.toSource {
               root = ./.;
-              fileset = fileset.difference ./. (
-                fileset.unions [
-                  ./.github
-                  ./.vscode
-                  ./flake.nix
-                  ./flake.lock
-                ]
-              );
+              fileset = fileset.unions [
+                ./.npmrc
+                ./env.d.ts
+                ./eslint.config.ts
+                ./package.json
+                ./package-lock.json
+                ./prettier.config.ts
+                ./tsconfig.json
+                ./icons
+                ./src
+                ./utils
+              ];
             };
 
             npmDeps = pkgs.importNpmLock {
@@ -205,10 +209,9 @@
             installPhase = ''
               runHook preInstall
 
-              mkdir -p $out/bin
-              mkdir -p $out/share
+              mkdir -p $out/bin $out/share
               cp -r * $out/share
-              ags bundle app.tsx $out/bin/${finalAttrs.pname} -d "SRC='$out/share'" --gtk 4
+              ags bundle src/app.tsx $out/bin/${finalAttrs.pname} -d "SRC='$out/share'" --gtk 4
 
               runHook postInstall
             '';

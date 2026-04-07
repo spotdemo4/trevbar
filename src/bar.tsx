@@ -10,13 +10,13 @@ import Network from "gi://AstalNetwork";
 import Tray from "gi://AstalTray";
 import type AstalTray from "gi://AstalTray";
 import Pango from "gi://Pango?version=1.0";
-import { animate } from "./utils/animate";
-import NvTop from "./utils/nvtop";
-import Sensors from "./utils/sensors";
-import Syncthing from "./utils/syncthing";
-import System from "./utils/system";
-import Tailscale from "./utils/tailscale";
-import { getHyprlandMonitor, getIcon } from "./utils/utils";
+import { animate } from "../utils/animate";
+import NvTop from "../utils/nvtop";
+import Sensors from "../utils/sensors";
+import Syncthing from "../utils/syncthing";
+import System from "../utils/system";
+import Tailscale from "../utils/tailscale";
+import { getHyprlandMonitor, getIcon } from "../utils/utils";
 
 const formatBinary = partial({ standard: "iec" });
 
