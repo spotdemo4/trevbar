@@ -87,6 +87,11 @@ export default class System extends GObject.Object {
 	get disk_write() {
 		return this.#diskWrite;
 	}
+	#diskUsage = 0;
+	@getter(Number)
+	get disk_usage() {
+		return this.#diskUsage;
+	}
 
 	constructor() {
 		super();
@@ -212,6 +217,7 @@ export default class System extends GObject.Object {
 		console.log("Disk index:", index);
 		let prevRead = System.disk.xdisk_sectors_read[index];
 		let prevWrite = System.disk.xdisk_sectors_write[index];
+		let maxUsage = 0;
 
 		interval(2000, () => {
 			GTop.glibtop_get_disk(System.disk);
@@ -236,6 +242,15 @@ export default class System extends GObject.Object {
 			if (writeKBPS !== this.#diskWrite) {
 				this.#diskWrite = writeKBPS * 1024; // convert to bytes per second
 				this.notify("disk_write");
+			}
+
+			const usage = readKBPS + writeKBPS;
+			if (usage > maxUsage) maxUsage = usage;
+
+			const usagePercent = (usage / maxUsage) * 100;
+			if (usagePercent !== this.#diskUsage) {
+				this.#diskUsage = usagePercent;
+				this.notify("disk_usage");
 			}
 		});
 	}

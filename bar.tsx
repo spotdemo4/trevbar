@@ -360,8 +360,12 @@ function DiskUsage(): JSX.Element {
 	const system = System.get_default();
 	const sensors = Sensors.get_default();
 
+	const usage = createBinding(system, "disk_usage");
+	const usage_str = usage((usage) => `${Math.round(usage)}%`);
+
 	const read = createBinding(system, "disk_read");
 	const read_str = read((read) => `${formatBinary(read)}/s`);
+
 	const write = createBinding(system, "disk_write");
 	const write_str = write((write) => `${formatBinary(write)}/s`);
 
@@ -372,12 +376,13 @@ function DiskUsage(): JSX.Element {
 
 	const color = createComputed(() =>
 		animate("disk", () => {
+			const u = usage();
 			const t = temp();
 			const m = temp_max();
 
-			if (t > m) {
+			if (u > 80 || t > m) {
 				return "red";
-			} else if (t > m * 0.8) {
+			} else if (u > 60 || t > m * 0.8) {
 				return "yellow";
 			} else {
 				return "green";
@@ -394,6 +399,10 @@ function DiskUsage(): JSX.Element {
 			<image iconName="hard-drive" />
 			<popover>
 				<box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
+					<box spacing={16}>
+						<label label="Usage" hexpand halign={Gtk.Align.START} />
+						<label label={usage_str} hexpand halign={Gtk.Align.END} />
+					</box>
 					<box spacing={16} visible={temp_available}>
 						<label label="Temp" hexpand halign={Gtk.Align.START} />
 						<label label={temp_str} hexpand halign={Gtk.Align.END} />
