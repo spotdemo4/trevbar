@@ -161,7 +161,7 @@
           with pkgs.lib;
           pkgs.buildNpmPackage (finalAttrs: {
             pname = "trevbar";
-            version = "0.4.1";
+            version = "0.5.0";
             nodejs = pkgs.nodejs_24;
 
             src = fileset.toSource {
