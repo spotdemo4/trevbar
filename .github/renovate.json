@@ -6,6 +6,7 @@
 	"requireConfig": "ignored",
 	"platform": "github",
 	"repositories": ["spotdemo4/trevbar"],
+	"allowedCommands": ["npm audit fix"],
 
 	// repository
 	"extends": ["config:recommended"],
@@ -15,7 +16,11 @@
 	"lockFileMaintenance": {
 		"enabled": true,
 		"automerge": true,
-		"schedule": ["* * * * 0"] // every Sunday
+		"schedule": ["* * * * 0"], // sunday
+		"skipInstalls": false,
+		"postUpgradeTasks": {
+			"commands": ["npm audit fix"]
+		}
 	},
 	"vulnerabilityAlerts": {
 		"enabled": true,
