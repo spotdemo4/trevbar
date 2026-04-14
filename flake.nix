@@ -98,9 +98,14 @@
           };
 
           update = pkgs.mkShell {
+            buildInputs = [
+              (ags.packages.${system}.default.override {
+                inherit extraPackages;
+              })
+            ];
             packages = with pkgs; [
               renovate
-              nodejs_24 # npm i
+              nodejs_24 # npm install / audit
             ];
           };
 

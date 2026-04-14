@@ -6,7 +6,7 @@
 	"requireConfig": "ignored",
 	"platform": "github",
 	"repositories": ["spotdemo4/trevbar"],
-	"allowedCommands": ["npm audit fix"],
+	"allowedCommands": ["npm run gen", "npm audit fix"],
 
 	// repository
 	"extends": ["config:recommended"],
@@ -19,7 +19,7 @@
 		"schedule": ["* * * * 0"], // sunday
 		"skipInstalls": false,
 		"postUpgradeTasks": {
-			"commands": ["npm audit fix"]
+			"commands": ["npm run gen", "npm audit fix"]
 		}
 	},
 	"vulnerabilityAlerts": {
