@@ -7,8 +7,10 @@
 		"dev": "ags run src/app.tsx"
 	},
 	"dependencies": {
-		"ags": "*",
 		"filesize": "^11.0.15"
+	},
+	"optionalDependencies": {
+		"ags": "*"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.5",
