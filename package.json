@@ -7,7 +7,7 @@
 		"dev": "ags run src/app.tsx"
 	},
 	"dependencies": {
-		"filesize": "^11.0.15"
+		"filesize": "^11.0.16"
 	},
 	"optionalDependencies": {
 		"ags": "*"
