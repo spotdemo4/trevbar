@@ -58,9 +58,6 @@ export function sortByMaster(clients: Hyprland.Client[]) {
 }
 
 export function getIcon(name?: string, fallback?: string): string {
-	name = name?.toLowerCase();
-	fallback = fallback?.toLowerCase();
-
 	// Hard-coded icons
 	switch (name) {
 		case "zen-beta":
@@ -72,6 +69,7 @@ export function getIcon(name?: string, fallback?: string): string {
 		case "jetbrains-idea-ce":
 			return getIcon("idea", fallback);
 		case "onlyoffice":
+		case "ONLYOFFICE":
 		case "onlyoffice desktop editors":
 			return getIcon("onlyoffice-desktopeditors", fallback);
 		case "vesktop":
@@ -84,9 +82,11 @@ export function getIcon(name?: string, fallback?: string): string {
 
 	if (!name || !iconTheme.has_icon(name)) {
 		if (fallback) {
+			console.warn(`Icon "${name}" not found, trying fallback "${fallback}"`);
 			return getIcon(fallback);
 		}
 
+		console.warn(`Fallback "${name}" not found`);
 		return "item-missing-symbolic";
 	}
 
