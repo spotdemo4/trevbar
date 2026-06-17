@@ -59,18 +59,6 @@
           ]
           ++ astalPackages;
 
-        girPackages =
-          with pkgs;
-          [
-            gdk-pixbuf.dev
-            glib.dev
-            libgtop.dev
-            networkmanager.dev
-          ]
-          ++ map (pkg: pkg.dev) astalPackages;
-
-        girFlags = pkgs.lib.concatMapStringsSep " " (pkg: "-g ${pkg}/share/gir-1.0") girPackages;
-
         agsFull = ags.packages.${system}.default.override {
           inherit extraPackages;
         };
@@ -206,7 +194,7 @@
 
         packages.default =
           with pkgs.lib;
-          pkgs.buildNpmPackage (finalAttrs: {
+          pkgs.buildNpmPackage (final: {
             pname = "trevbar";
             version = "0.5.3";
             nodejs = pkgs.nodejs_24;
@@ -234,7 +222,7 @@
             npmDeps = pkgs.importNpmLock {
               npmRoot = ./.;
               packageSourceOverrides = {
-                "node_modules/ags" = "${ags.packages.${system}.default}/share/ags/js";
+                "node_modules/ags" = "${agsFull}/share/ags/js";
               };
             };
             npmConfigHook = pkgs.importNpmLock.npmConfigHook;
@@ -242,17 +230,12 @@
             nativeBuildInputs = with pkgs; [
               wrapGAppsHook3
               gobject-introspection
-              ags.packages.${system}.default
+              agsFull
             ];
-            buildInputs =
-              with pkgs;
-              [
-                gjs
-                nvtopPackages.intel
-                lm_sensors
-              ]
-              ++ extraPackages
-              ++ girPackages;
+            buildInputs = with pkgs; [
+              nvtopPackages.intel
+              lm_sensors
+            ];
             dontNpmBuild = true;
 
             nativeCheckInputs = with pkgs; [
@@ -262,7 +245,6 @@
             checkPhase = ''
               oxfmt --check
               ags types -u -d .
-              npx @ts-for-gir/cli generate AstalBattery-0.1 AstalHyprland-0.1 AstalNetwork-0.1 AstalTray-0.1 GTop-2.0 NM-1.0 --ignoreVersionConflicts --outdir @girs ${girFlags}
               oxlint --deny-warnings
             '';
 
@@ -270,7 +252,7 @@
               runHook preInstall
               mkdir -p $out/bin $out/share
               cp -r * $out/share
-              ags bundle src/app.tsx $out/bin/${finalAttrs.pname} -d "SRC='$out/share'" --gtk 4
+              ags bundle src/app.tsx $out/bin/${final.pname} -d "SRC='$out/share'" --gtk 4
               runHook postInstall
             '';
 
@@ -287,7 +269,7 @@
               license = licenses.mit;
               platforms = platforms.unix;
               homepage = "https://trev.zip/trev/trevbar";
-              changelog = "https://trev.zip/trev/trevbar/releases/tag/v${finalAttrs.version}";
+              changelog = "https://trev.zip/trev/trevbar/releases/tag/v${final.version}";
               downloadPage = "https://trev.zip/trev/trevbar/releases";
             };
           });
