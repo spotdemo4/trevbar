@@ -202,7 +202,6 @@
             src = fileset.toSource {
               root = ./.;
               fileset = fileset.unions [
-                ./.gitignore
                 ./.npmrc
                 ./.oxfmtrc.json
                 ./.oxlintrc.json
@@ -211,7 +210,6 @@
                 ./package.json
                 ./package-lock.json
                 ./README.md
-                ./treefmt.toml
                 ./tsconfig.json
                 ./icons
                 ./src
