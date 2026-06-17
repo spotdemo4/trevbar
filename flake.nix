@@ -74,6 +74,7 @@
               # deps
               nvtopPackages.intel
               lm_sensors
+              systemd
 
               # lint
               oxlint
@@ -230,10 +231,16 @@
               gobject-introspection
               agsFull
             ];
-            buildInputs = with pkgs; [
-              nvtopPackages.intel
-              lm_sensors
-            ];
+            buildInputs =
+              with pkgs;
+              [
+                nvtopPackages.intel
+                lm_sensors
+              ]
+              ++ extraPackages;
+            buildPhase = ''
+              ags types -u -d .
+            '';
             dontNpmBuild = true;
 
             nativeCheckInputs = with pkgs; [
@@ -242,7 +249,6 @@
             ];
             checkPhase = ''
               oxfmt --check
-              ags types -u -d .
               oxlint --deny-warnings
             '';
 
@@ -258,6 +264,8 @@
               gappsWrapperArgs+=(
                 --prefix PATH : "${pkgs.nvtopPackages.intel}/bin"
                 --prefix PATH : "${pkgs.lm_sensors}/bin"
+                --prefix PATH : "${pkgs.systemd}/bin"
+                --prefix PATH : "${pkgs.coreutils}/bin"
               )
             '';
 

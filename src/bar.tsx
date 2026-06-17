@@ -1,7 +1,7 @@
-import { createBinding, createComputed, For } from "ags";
+import { createBinding, createComputed, createState, For } from "ags";
 import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
-import { execAsync } from "ags/process";
+import { execAsync, subprocess } from "ags/process";
 import { createPoll } from "ags/time";
 import { partial } from "filesize";
 import Battery from "gi://AstalBattery";
@@ -20,6 +20,57 @@ import Tailscale from "../utils/tailscale";
 import { getHyprlandMonitor, getIcon } from "../utils/utils";
 
 const formatBinary = partial({ standard: "iec" });
+const idleInhibitorCommand = [
+  "systemd-inhibit",
+  "--what=idle",
+  "--who=trevbar",
+  "--why=trevbar idle inhibitor",
+  "--mode=block",
+  "sleep",
+  "infinity",
+];
+const [idleInhibited, setIdleInhibited] = createState(false);
+let idleInhibitor: ReturnType<typeof subprocess> | null = null;
+
+function stopIdleInhibitor() {
+  const process = idleInhibitor;
+  idleInhibitor = null;
+  process?.kill();
+  setIdleInhibited(false);
+}
+
+function startIdleInhibitor() {
+  if (idleInhibitor) return;
+
+  try {
+    const process = subprocess(idleInhibitorCommand, undefined, (error) => {
+      console.error("Idle inhibitor error", error);
+    });
+
+    idleInhibitor = process;
+    setIdleInhibited(true);
+
+    process.connect("exit", () => {
+      if (idleInhibitor !== process) return;
+
+      idleInhibitor = null;
+      setIdleInhibited(false);
+    });
+  } catch (error) {
+    console.error("Failed to start idle inhibitor", error);
+    setIdleInhibited(false);
+  }
+}
+
+function toggleIdleInhibitor() {
+  if (idleInhibited()) {
+    stopIdleInhibitor();
+  } else {
+    startIdleInhibitor();
+  }
+}
+
+app.connect("shutdown", stopIdleInhibitor);
 
 export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
   const { TOP, LEFT, RIGHT } = Astal.WindowAnchor;
@@ -50,6 +101,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
           <TailscaleWidget />
           <SyncthingWidget />
           <SysTray />
+          <IdleInhibitor />
           <Time />
         </box>
       </centerbox>
@@ -553,6 +605,26 @@ function SysTray(): JSX.Element {
         }}
       </For>
     </box>
+  );
+}
+
+function IdleInhibitor(): JSX.Element {
+  const color = idleInhibited((inhibited) =>
+    animate("idle-inhibitor", () => (inhibited ? "green" : "gray")),
+  );
+  const tooltipText = idleInhibited((inhibited) =>
+    inhibited ? "Idle inhibitor enabled" : "Idle inhibitor disabled",
+  );
+
+  return (
+    <button
+      onClicked={toggleIdleInhibitor}
+      cursor={Gdk.Cursor.new_from_name("pointer", null)}
+      class={color}
+      tooltipText={tooltipText}
+    >
+      <image iconName="lucide-coffee" />
+    </button>
   );
 }
 
