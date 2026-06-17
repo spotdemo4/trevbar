@@ -4,17 +4,18 @@
   "description": "Trev's status bar",
   "license": "MIT",
   "repository": {
-    "url": "https://trev.zip/trev/trevbar"
+    "url": "https://trev.zip/llc/trevbar"
   },
   "type": "module",
   "scripts": {
-    "gen": "ags types -u -d . && oxfmt --write tsconfig.json",
-    "dev": "ags run src/app.tsx"
+    "dev": "ags run src/app.tsx",
+    "configure": "ags types -u -d . && oxfmt --write tsconfig.json"
   },
   "dependencies": {
     "filesize": "^11.0.17"
   },
   "devDependencies": {
+    "@ts-for-gir/cli": "^4.0.4",
     "@types/node": "^24.13.2",
     "typescript": "^6.0.3"
   },

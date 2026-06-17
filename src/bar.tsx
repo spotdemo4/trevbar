@@ -533,7 +533,7 @@ function SysTray(): JSX.Element {
           if (item.get_title() == "Network") {
             return (
               <menubutton
-                $={(self) => init(self, item)}
+                $={(self) => init(self as Gtk.MenuButton, item)}
                 class={connected}
                 cursor={Gdk.Cursor.new_from_name("pointer", null)}
               >
@@ -544,7 +544,7 @@ function SysTray(): JSX.Element {
 
           return (
             <menubutton
-              $={(self) => init(self, item)}
+              $={(self) => init(self as Gtk.MenuButton, item)}
               cursor={Gdk.Cursor.new_from_name("pointer", null)}
             >
               <image gicon={createBinding(item, "gicon")} />

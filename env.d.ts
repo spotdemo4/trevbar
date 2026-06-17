@@ -1,21 +1,21 @@
-declare const SRC: string;
+declare var SRC: string;
 
 declare module "inline:*" {
-  const content: string;
-  export default content;
+  const inlineContent: string;
+  export default inlineContent;
 }
 
 declare module "*.scss" {
-  const content: string;
-  export default content;
+  const scssContent: string;
+  export default scssContent;
 }
 
 declare module "*.blp" {
-  const content: string;
-  export default content;
+  const blueprintContent: string;
+  export default blueprintContent;
 }
 
 declare module "*.css" {
-  const content: string;
-  export default content;
+  const cssContent: string;
+  export default cssContent;
 }

@@ -59,6 +59,18 @@
           ]
           ++ astalPackages;
 
+        girPackages =
+          with pkgs;
+          [
+            gdk-pixbuf.dev
+            glib.dev
+            libgtop.dev
+            networkmanager.dev
+          ]
+          ++ map (pkg: pkg.dev) astalPackages;
+
+        girFlags = pkgs.lib.concatMapStringsSep " " (pkg: "-g ${pkg}/share/gir-1.0") girPackages;
+
         agsFull = ags.packages.${system}.default.override {
           inherit extraPackages;
         };
@@ -121,6 +133,7 @@
 
         apps = pkgs.mkApps {
           dev = "npm run dev";
+          configure = "npm run configure";
         };
 
         checks = pkgs.mkChecks {
@@ -168,18 +181,7 @@
             '';
           };
 
-          renovate-gh = {
-            root = ./.github;
-            files = ./.github/renovate.json;
-            packages = with pkgs; [
-              renovate
-            ];
-            script = ''
-              renovate-config-validator renovate.json
-            '';
-          };
-
-          renovate-fj = {
+          renovate = {
             root = ./.forgejo;
             files = ./.forgejo/renovate.json;
             packages = with pkgs; [
@@ -232,7 +234,7 @@
             npmDeps = pkgs.importNpmLock {
               npmRoot = ./.;
               packageSourceOverrides = {
-                "node_modules/ags" = ags.packages.${system}.default;
+                "node_modules/ags" = "${ags.packages.${system}.default}/share/ags/js";
               };
             };
             npmConfigHook = pkgs.importNpmLock.npmConfigHook;
@@ -249,7 +251,8 @@
                 nvtopPackages.intel
                 lm_sensors
               ]
-              ++ extraPackages;
+              ++ extraPackages
+              ++ girPackages;
             dontNpmBuild = true;
 
             nativeCheckInputs = with pkgs; [
@@ -258,6 +261,8 @@
             ];
             checkPhase = ''
               oxfmt --check
+              ags types -u -d .
+              npx @ts-for-gir/cli generate AstalBattery-0.1 AstalHyprland-0.1 AstalNetwork-0.1 AstalTray-0.1 GTop-2.0 NM-1.0 --ignoreVersionConflicts --outdir @girs ${girFlags}
               oxlint --deny-warnings
             '';
 
