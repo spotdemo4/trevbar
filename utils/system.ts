@@ -217,7 +217,8 @@ export default class System extends GObject.Object {
     console.log("Disk index:", index);
     let prevRead = System.disk.xdisk_sectors_read[index];
     let prevWrite = System.disk.xdisk_sectors_write[index];
-    let maxUsage = 0;
+    let maxRead = 0;
+    let maxWrite = 0;
 
     interval(2000, () => {
       GTop.glibtop_get_disk(System.disk);
@@ -234,20 +235,25 @@ export default class System extends GObject.Object {
       const readKBPS = readPS / 2; // kibibytes per second (I don't know why this works)
       const writeKBPS = writePS / 2; // kibibytes per second (I don't know why this works)
 
-      if (readKBPS !== this.#diskRead) {
-        this.#diskRead = readKBPS * 1024; // convert to bytes per second
+      const readBPS = readKBPS * 1024;
+      const writeBPS = writeKBPS * 1024;
+
+      if (readBPS !== this.#diskRead) {
+        this.#diskRead = readBPS;
         this.notify("disk_read");
       }
 
-      if (writeKBPS !== this.#diskWrite) {
-        this.#diskWrite = writeKBPS * 1024; // convert to bytes per second
+      if (writeBPS !== this.#diskWrite) {
+        this.#diskWrite = writeBPS;
         this.notify("disk_write");
       }
 
-      const usage = readKBPS + writeKBPS;
-      if (usage > maxUsage) maxUsage = usage;
+      if (readKBPS > maxRead) maxRead = readKBPS;
+      if (writeKBPS > maxWrite) maxWrite = writeKBPS;
 
-      const usagePercent = (usage / maxUsage) * 100;
+      const readUsagePercent = maxRead > 0 ? (readKBPS / maxRead) * 100 : 0;
+      const writeUsagePercent = maxWrite > 0 ? (writeKBPS / maxWrite) * 100 : 0;
+      const usagePercent = Math.max(readUsagePercent, writeUsagePercent);
       if (usagePercent !== this.#diskUsage) {
         this.#diskUsage = usagePercent;
         this.notify("disk_usage");
