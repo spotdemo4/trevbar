@@ -238,9 +238,6 @@
                 lm_sensors
               ]
               ++ extraPackages;
-            buildPhase = ''
-              ags types -u -d .
-            '';
             dontNpmBuild = true;
 
             nativeCheckInputs = with pkgs; [
@@ -249,6 +246,7 @@
             ];
             checkPhase = ''
               oxfmt --check
+              ags types -u -d .
               oxlint --deny-warnings
             '';
 
