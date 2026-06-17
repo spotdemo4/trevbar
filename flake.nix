@@ -13,8 +13,8 @@
   inputs = {
     systems.url = "github:spotdemo4/systems";
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    trev = {
-      url = "github:spotdemo4/nur";
+    trevpkgs = {
+      url = "github:spotdemo4/trevpkgs";
       inputs.systems.follows = "systems";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -32,11 +32,11 @@
   outputs =
     {
       self,
-      trev,
+      trevpkgs,
       ags,
       ...
     }:
-    trev.libs.mkFlake (
+    trevpkgs.libs.mkFlake (
       system: pkgs:
       let
         astalPackages = with ags.packages.${system}; [
@@ -58,16 +58,16 @@
             libsoup_3
           ]
           ++ astalPackages;
+
+        agsFull = ags.packages.${system}.default.override {
+          inherit extraPackages;
+        };
       in
       {
         devShells = {
           default = pkgs.mkShell {
             shellHook = pkgs.shellhook.ref;
-            buildInputs = [
-              (ags.packages.${system}.default.override {
-                inherit extraPackages;
-              })
-            ];
+            buildInputs = [ agsFull ];
             packages = with pkgs; [
               nodejs_24
 
@@ -75,13 +75,18 @@
               nvtopPackages.intel
               lm_sensors
 
+              # lint
+              oxlint
+              nixd
+              nil
+
               # format
+              oxfmt
               nixfmt
+              treefmt
 
               # util
               bumper
-              flake-release
-              renovate
             ];
           };
 
@@ -98,11 +103,7 @@
           };
 
           update = pkgs.mkShell {
-            buildInputs = [
-              (ags.packages.${system}.default.override {
-                inherit extraPackages;
-              })
-            ];
+            buildInputs = [ agsFull ];
             packages = with pkgs; [
               renovate
               nodejs_24 # npm install / audit
@@ -113,17 +114,20 @@
             packages = with pkgs; [
               nodejs_24 # npm audit
               flake-checker # nix
-              octoscan # actions
+              zizmor # actions
             ];
           };
         };
 
+        apps = pkgs.mkApps {
+          dev = "npm run dev";
+        };
+
         checks = pkgs.mkChecks {
-          trevbar = {
-            src = self.packages.${system}.default;
-            script = ''
-              npx prettier --check .
-              npx eslint --flag unstable_native_nodejs_ts_config .
+          trevbar = self.packages.${system}.default.overrideAttrs {
+            dontBuild = true;
+            installPhase = ''
+              touch $out
             '';
           };
 
@@ -133,14 +137,40 @@
             packages = with pkgs; [
               nixfmt
             ];
-            forEach = ''
+            script = ''
               nixfmt --check "$file"
             '';
           };
 
-          renovate = {
+          actions-gh = {
+            root = ./.github/workflows;
+            filter = file: file.hasExt "yaml";
+            packages = with pkgs; [
+              action-validator
+              zizmor
+            ];
+            script = ''
+              action-validator "$file"
+              zizmor --offline "$file"
+            '';
+          };
+
+          actions-fj = {
+            root = ./.forgejo/workflows;
+            filter = file: file.hasExt "yaml";
+            packages = with pkgs; [
+              forgejo-runner
+              zizmor
+            ];
+            script = ''
+              forgejo-runner validate --workflow --path "$file"
+              zizmor --offline "$file"
+            '';
+          };
+
+          renovate-gh = {
             root = ./.github;
-            fileset = ./.github/renovate.json;
+            files = ./.github/renovate.json;
             packages = with pkgs; [
               renovate
             ];
@@ -149,15 +179,25 @@
             '';
           };
 
-          actions = {
-            root = ./.github/workflows;
+          renovate-fj = {
+            root = ./.forgejo;
+            files = ./.forgejo/renovate.json;
             packages = with pkgs; [
-              action-validator
-              octoscan
+              renovate
             ];
-            forEach = ''
-              action-validator "$file"
-              octoscan scan "$file"
+            script = ''
+              renovate-config-validator renovate.json
+            '';
+          };
+
+          config = {
+            root = ./.;
+            filter = file: file.hasExt "json" || file.hasExt "yaml" || file.hasExt "toml" || file.hasExt "md";
+            packages = with pkgs; [
+              oxfmt
+            ];
+            script = ''
+              oxfmt --check
             '';
           };
         };
@@ -174,11 +214,14 @@
               fileset = fileset.unions [
                 ./.gitignore
                 ./.npmrc
+                ./.oxfmtrc.json
+                ./.oxlintrc.json
                 ./env.d.ts
-                ./eslint.config.ts
+                ./LICENSE
                 ./package.json
                 ./package-lock.json
-                ./prettier.config.ts
+                ./README.md
+                ./treefmt.toml
                 ./tsconfig.json
                 ./icons
                 ./src
@@ -199,7 +242,6 @@
               gobject-introspection
               ags.packages.${system}.default
             ];
-
             buildInputs =
               with pkgs;
               [
@@ -208,17 +250,22 @@
                 lm_sensors
               ]
               ++ extraPackages;
-
-            doCheck = false;
             dontNpmBuild = true;
+
+            nativeCheckInputs = with pkgs; [
+              oxfmt
+              oxlint
+            ];
+            checkPhase = ''
+              oxfmt --check
+              oxlint --deny-warnings
+            '';
 
             installPhase = ''
               runHook preInstall
-
               mkdir -p $out/bin $out/share
               cp -r * $out/share
               ags bundle src/app.tsx $out/bin/${finalAttrs.pname} -d "SRC='$out/share'" --gtk 4
-
               runHook postInstall
             '';
 
@@ -234,12 +281,19 @@
               mainProgram = "trevbar";
               license = licenses.mit;
               platforms = platforms.unix;
-              homepage = "https://github.com/spotdemo4/trevbar";
-              changelog = "https://github.com/spotdemo4/trevbar/releases/tag/v${finalAttrs.version}";
+              homepage = "https://trev.zip/trev/trevbar";
+              changelog = "https://trev.zip/trev/trevbar/releases/tag/v${finalAttrs.version}";
+              downloadPage = "https://trev.zip/trev/trevbar/releases";
             };
           });
 
-        formatter = pkgs.nixfmt-tree;
+        formatter = pkgs.treefmt.withConfig {
+          configFile = ./treefmt.toml;
+          runtimeInputs = with pkgs; [
+            oxfmt
+            nixfmt
+          ];
+        };
       }
     );
 }

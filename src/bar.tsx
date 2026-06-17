@@ -10,6 +10,7 @@ import Network from "gi://AstalNetwork";
 import Tray from "gi://AstalTray";
 import type AstalTray from "gi://AstalTray";
 import Pango from "gi://Pango?version=1.0";
+
 import { animate } from "../utils/animate";
 import NvTop from "../utils/nvtop";
 import Sensors from "../utils/sensors";
@@ -21,549 +22,549 @@ import { getHyprlandMonitor, getIcon } from "../utils/utils";
 const formatBinary = partial({ standard: "iec" });
 
 export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
-	const { TOP, LEFT, RIGHT } = Astal.WindowAnchor;
+  const { TOP, LEFT, RIGHT } = Astal.WindowAnchor;
 
-	return (
-		<window
-			visible
-			name="trevbar"
-			class="Bar"
-			gdkmonitor={gdkmonitor}
-			exclusivity={Astal.Exclusivity.EXCLUSIVE}
-			anchor={TOP | LEFT | RIGHT}
-			application={app}
-		>
-			<centerbox cssName="centerbox">
-				<box $type="start" hexpand halign={Gtk.Align.START}>
-					<Workspaces monitor={gdkmonitor} />
-				</box>
-				<box $type="center">
-					<Title />
-				</box>
-				<box $type="end" hexpand halign={Gtk.Align.END} class="tray">
-					<CpuUsage />
-					<GpuUsage />
-					<RamUsage />
-					<DiskUsage />
-					<BatteryUsage />
-					<TailscaleWidget />
-					<SyncthingWidget />
-					<SysTray />
-					<Time />
-				</box>
-			</centerbox>
-		</window>
-	);
+  return (
+    <window
+      visible
+      name="trevbar"
+      class="Bar"
+      gdkmonitor={gdkmonitor}
+      exclusivity={Astal.Exclusivity.EXCLUSIVE}
+      anchor={TOP | LEFT | RIGHT}
+      application={app}
+    >
+      <centerbox cssName="centerbox">
+        <box $type="start" hexpand halign={Gtk.Align.START}>
+          <Workspaces monitor={gdkmonitor} />
+        </box>
+        <box $type="center">
+          <Title />
+        </box>
+        <box $type="end" hexpand halign={Gtk.Align.END} class="tray">
+          <CpuUsage />
+          <GpuUsage />
+          <RamUsage />
+          <DiskUsage />
+          <BatteryUsage />
+          <TailscaleWidget />
+          <SyncthingWidget />
+          <SysTray />
+          <Time />
+        </box>
+      </centerbox>
+    </window>
+  );
 }
 
 function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
-	const hypr = Hyprland.get_default();
-	const hyprMonitor = getHyprlandMonitor(monitor);
-	if (!hyprMonitor) {
-		return <box />;
-	}
-	const workspaces = createBinding(
-		hypr,
-		"workspaces",
-	)((w) =>
-		w.filter((workspace) => workspace.monitor.id === hyprMonitor.id).sort((a, b) => a.id - b.id),
-	);
+  const hypr = Hyprland.get_default();
+  const hyprMonitor = getHyprlandMonitor(monitor);
+  if (!hyprMonitor) {
+    return <box />;
+  }
+  const workspaces = createBinding(
+    hypr,
+    "workspaces",
+  )((w) =>
+    w.filter((workspace) => workspace.monitor.id === hyprMonitor.id).sort((a, b) => a.id - b.id),
+  );
 
-	return (
-		<box class="workspaces">
-			<For each={workspaces}>{(workspace) => <Workspace workspace={workspace} />}</For>
-		</box>
-	);
+  return (
+    <box class="workspaces">
+      <For each={workspaces}>{(workspace) => <Workspace workspace={workspace} />}</For>
+    </box>
+  );
 }
 
 function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
-	const hypr = Hyprland.get_default();
-	const focused = createBinding(hypr, "focusedWorkspace")((w) => w.id === workspace.id);
-	const clients = createBinding(
-		hypr,
-		"clients",
-	)((c) => c.filter((client) => client.workspace.id === workspace.id).sort((a, b) => a.x - b.x));
+  const hypr = Hyprland.get_default();
+  const focused = createBinding(hypr, "focusedWorkspace")((w) => w.id === workspace.id);
+  const clients = createBinding(
+    hypr,
+    "clients",
+  )((c) => c.filter((client) => client.workspace.id === workspace.id).sort((a, b) => a.x - b.x));
 
-	return (
-		<togglebutton
-			onClicked={() => workspace.focus()}
-			tooltipText={`Workspace ${workspace.name}`}
-			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			active={focused}
-		>
-			<box>
-				<For each={clients}>
-					{(client) => (
-						<image
-							iconName={getIcon(client.initialClass, client.title)}
-							tooltipText={client.title}
-						/>
-					)}
-				</For>
-			</box>
-		</togglebutton>
-	);
+  return (
+    <togglebutton
+      onClicked={() => workspace.focus()}
+      tooltipText={`Workspace ${workspace.name}`}
+      cursor={Gdk.Cursor.new_from_name("pointer", null)}
+      active={focused}
+    >
+      <box>
+        <For each={clients}>
+          {(client) => (
+            <image
+              iconName={getIcon(client.initialClass, client.title)}
+              tooltipText={client.title}
+            />
+          )}
+        </For>
+      </box>
+    </togglebutton>
+  );
 }
 
 function Title(): JSX.Element {
-	const hypr = Hyprland.get_default();
-	const focused = createBinding(hypr, "focusedClient");
-	const clients = createBinding(hypr, "clients");
+  const hypr = Hyprland.get_default();
+  const focused = createBinding(hypr, "focusedClient");
+  const clients = createBinding(hypr, "clients");
 
-	const client = createComputed(() => {
-		const f = focused();
-		if (!f) return null;
+  const client = createComputed(() => {
+    const f = focused();
+    if (!f) return null;
 
-		const c = clients();
-		return c.find((client) => client.address === f.address) || null;
-	});
+    const c = clients();
+    return c.find((client) => client.address === f.address) || null;
+  });
 
-	const title = client((client) => client?.title ?? "");
-	const available = client((client) => (client ? true : false));
-	const icon = client((client) =>
-		client ? getIcon(client.initialClass, client.title) : "item-missing-symbolic",
-	);
+  const title = client((client) => client?.title ?? "");
+  const available = client((client) => (client ? true : false));
+  const icon = client((client) =>
+    client ? getIcon(client.initialClass, client.title) : "item-missing-symbolic",
+  );
 
-	return (
-		<box class="title" visible={available}>
-			<image iconName={icon} />
-			<label valign={Gtk.Align.CENTER} label={title} ellipsize={Pango.EllipsizeMode.END} />
-		</box>
-	);
+  return (
+    <box class="title" visible={available}>
+      <image iconName={icon} />
+      <label valign={Gtk.Align.CENTER} label={title} ellipsize={Pango.EllipsizeMode.END} />
+    </box>
+  );
 }
 
 function CpuUsage(): JSX.Element {
-	const system = System.get_default();
-	const sensors = Sensors.get_default();
+  const system = System.get_default();
+  const sensors = Sensors.get_default();
 
-	const usage = createBinding(system, "cpu_total");
-	const usage_str = usage((usage) => `${Math.round(usage)}%`);
+  const usage = createBinding(system, "cpu_total");
+  const usage_str = usage((usage) => `${Math.round(usage)}%`);
 
-	const user_str = createBinding(system, "cpu_user")((usage) => `${Math.round(usage)}%`);
-	const system_str = createBinding(system, "cpu_system")((usage) => `${Math.round(usage)}%`);
-	const iowait_str = createBinding(system, "cpu_iowait")((usage) => `${Math.round(usage)}%`);
-	const irq_str = createBinding(system, "cpu_irq")((usage) => `${Math.round(usage)}%`);
-	const softirq_str = createBinding(system, "cpu_softirq")((usage) => `${Math.round(usage)}%`);
-	const nice_str = createBinding(system, "cpu_nice")((usage) => `${Math.round(usage)}%`);
+  const user_str = createBinding(system, "cpu_user")((usage) => `${Math.round(usage)}%`);
+  const system_str = createBinding(system, "cpu_system")((usage) => `${Math.round(usage)}%`);
+  const iowait_str = createBinding(system, "cpu_iowait")((usage) => `${Math.round(usage)}%`);
+  const irq_str = createBinding(system, "cpu_irq")((usage) => `${Math.round(usage)}%`);
+  const softirq_str = createBinding(system, "cpu_softirq")((usage) => `${Math.round(usage)}%`);
+  const nice_str = createBinding(system, "cpu_nice")((usage) => `${Math.round(usage)}%`);
 
-	const temp = createBinding(sensors, "cpu_temp");
-	const temp_max = createBinding(sensors, "cpu_max");
-	const temp_available = temp((temp) => temp > 0);
-	const temp_str = temp((temp) => `${Math.round(temp)}°C`);
+  const temp = createBinding(sensors, "cpu_temp");
+  const temp_max = createBinding(sensors, "cpu_max");
+  const temp_available = temp((temp) => temp > 0);
+  const temp_str = temp((temp) => `${Math.round(temp)}°C`);
 
-	const color = createComputed(() =>
-		animate("cpu", () => {
-			const u = usage();
-			const t = temp();
-			const m = temp_max();
+  const color = createComputed(() =>
+    animate("cpu", () => {
+      const u = usage();
+      const t = temp();
+      const m = temp_max();
 
-			if (u > 80 || t > m) {
-				return "red";
-			} else if (u > 60 || t > m * 0.8) {
-				return "yellow";
-			} else {
-				return "green";
-			}
-		}),
-	);
+      if (u > 80 || t > m) {
+        return "red";
+      } else if (u > 60 || t > m * 0.8) {
+        return "yellow";
+      } else {
+        return "green";
+      }
+    }),
+  );
 
-	return (
-		<menubutton
-			class={color}
-			halign={Gtk.Align.CENTER}
-			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			tooltipText={usage_str}
-		>
-			<image iconName="lucide-cpu" />
-			<popover>
-				<box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
-					<box spacing={16}>
-						<label label="Usage" hexpand halign={Gtk.Align.START} />
-						<label label={usage_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16} visible={temp_available}>
-						<label label="Temp" hexpand halign={Gtk.Align.START} />
-						<label label={temp_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="User" hexpand halign={Gtk.Align.START} />
-						<label label={user_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="System" hexpand halign={Gtk.Align.START} />
-						<label label={system_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="IOWait" hexpand halign={Gtk.Align.START} />
-						<label label={iowait_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="IRQ" hexpand halign={Gtk.Align.START} />
-						<label label={irq_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="SoftIRQ" hexpand halign={Gtk.Align.START} />
-						<label label={softirq_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="Nice" hexpand halign={Gtk.Align.START} />
-						<label label={nice_str} hexpand halign={Gtk.Align.END} />
-					</box>
-				</box>
-			</popover>
-		</menubutton>
-	);
+  return (
+    <menubutton
+      class={color}
+      halign={Gtk.Align.CENTER}
+      cursor={Gdk.Cursor.new_from_name("pointer", null)}
+      tooltipText={usage_str}
+    >
+      <image iconName="lucide-cpu" />
+      <popover>
+        <box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
+          <box spacing={16}>
+            <label label="Usage" hexpand halign={Gtk.Align.START} />
+            <label label={usage_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16} visible={temp_available}>
+            <label label="Temp" hexpand halign={Gtk.Align.START} />
+            <label label={temp_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="User" hexpand halign={Gtk.Align.START} />
+            <label label={user_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="System" hexpand halign={Gtk.Align.START} />
+            <label label={system_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="IOWait" hexpand halign={Gtk.Align.START} />
+            <label label={iowait_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="IRQ" hexpand halign={Gtk.Align.START} />
+            <label label={irq_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="SoftIRQ" hexpand halign={Gtk.Align.START} />
+            <label label={softirq_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="Nice" hexpand halign={Gtk.Align.START} />
+            <label label={nice_str} hexpand halign={Gtk.Align.END} />
+          </box>
+        </box>
+      </popover>
+    </menubutton>
+  );
 }
 
 function GpuUsage(): JSX.Element {
-	const nvtop = NvTop.get_default();
+  const nvtop = NvTop.get_default();
 
-	const usage = createBinding(nvtop, "usage");
-	const usage_str = usage((usage) => `${usage}%`);
+  const usage = createBinding(nvtop, "usage");
+  const usage_str = usage((usage) => `${usage}%`);
 
-	const clock = createBinding(nvtop, "clock");
-	const clock_available = clock((clock) => clock > 0);
-	const clock_str = clock((clock) => `${clock} MHz`);
+  const clock = createBinding(nvtop, "clock");
+  const clock_available = clock((clock) => clock > 0);
+  const clock_str = clock((clock) => `${clock} MHz`);
 
-	const power = createBinding(nvtop, "power");
-	const power_available = power((power) => power > 0);
-	const power_str = power((power) => `${power} W`);
+  const power = createBinding(nvtop, "power");
+  const power_available = power((power) => power > 0);
+  const power_str = power((power) => `${power} W`);
 
-	const temp = createBinding(nvtop, "temp");
-	const temp_available = temp((temp) => temp > 0);
-	const temp_str = temp((temp) => `${temp}°C`);
+  const temp = createBinding(nvtop, "temp");
+  const temp_available = temp((temp) => temp > 0);
+  const temp_str = temp((temp) => `${temp}°C`);
 
-	const encode_str = createBinding(nvtop, "encode")((usage) => `${usage}%`);
+  const encode_str = createBinding(nvtop, "encode")((usage) => `${usage}%`);
 
-	const color = usage((usage) =>
-		animate("gpu", () => {
-			if (usage > 80) {
-				return "red";
-			} else if (usage > 60) {
-				return "yellow";
-			} else {
-				return "green";
-			}
-		}),
-	);
+  const color = usage((usage) =>
+    animate("gpu", () => {
+      if (usage > 80) {
+        return "red";
+      } else if (usage > 60) {
+        return "yellow";
+      } else {
+        return "green";
+      }
+    }),
+  );
 
-	return (
-		<menubutton
-			halign={Gtk.Align.CENTER}
-			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			class={color}
-			tooltipText={usage_str}
-		>
-			<image iconName="lucide-gpu" />
-			<popover>
-				<box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
-					<box spacing={16}>
-						<label label="Usage" hexpand halign={Gtk.Align.START} />
-						<label label={usage_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16} visible={temp_available}>
-						<label label="Temp" hexpand halign={Gtk.Align.START} />
-						<label label={temp_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16} visible={clock_available}>
-						<label label="Clock" hexpand halign={Gtk.Align.START} />
-						<label label={clock_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16} visible={power_available}>
-						<label label="Power" hexpand halign={Gtk.Align.START} />
-						<label label={power_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="Encoder" hexpand halign={Gtk.Align.START} />
-						<label label={encode_str} hexpand halign={Gtk.Align.END} />
-					</box>
-				</box>
-			</popover>
-		</menubutton>
-	);
+  return (
+    <menubutton
+      halign={Gtk.Align.CENTER}
+      cursor={Gdk.Cursor.new_from_name("pointer", null)}
+      class={color}
+      tooltipText={usage_str}
+    >
+      <image iconName="lucide-gpu" />
+      <popover>
+        <box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
+          <box spacing={16}>
+            <label label="Usage" hexpand halign={Gtk.Align.START} />
+            <label label={usage_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16} visible={temp_available}>
+            <label label="Temp" hexpand halign={Gtk.Align.START} />
+            <label label={temp_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16} visible={clock_available}>
+            <label label="Clock" hexpand halign={Gtk.Align.START} />
+            <label label={clock_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16} visible={power_available}>
+            <label label="Power" hexpand halign={Gtk.Align.START} />
+            <label label={power_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="Encoder" hexpand halign={Gtk.Align.START} />
+            <label label={encode_str} hexpand halign={Gtk.Align.END} />
+          </box>
+        </box>
+      </popover>
+    </menubutton>
+  );
 }
 
 function RamUsage(): JSX.Element {
-	const system = System.get_default();
-	const sensors = Sensors.get_default();
+  const system = System.get_default();
+  const sensors = Sensors.get_default();
 
-	const usage = createBinding(system, "mem_usage");
-	const usage_str = usage((usage) => `${Math.round(usage)}%`);
+  const usage = createBinding(system, "mem_usage");
+  const usage_str = usage((usage) => `${Math.round(usage)}%`);
 
-	const cached_str = createBinding(system, "mem_cached")((cached) => formatBinary(cached));
-	const used_str = createBinding(system, "mem_used")((used) => formatBinary(used));
-	const free_str = createBinding(system, "mem_free")((free) => formatBinary(free));
-	const avail_str = createBinding(system, "mem_available")((avail) => formatBinary(avail));
+  const cached_str = createBinding(system, "mem_cached")((cached) => formatBinary(cached));
+  const used_str = createBinding(system, "mem_used")((used) => formatBinary(used));
+  const free_str = createBinding(system, "mem_free")((free) => formatBinary(free));
+  const avail_str = createBinding(system, "mem_available")((avail) => formatBinary(avail));
 
-	const temp = createBinding(sensors, "mem_temp");
-	const temp_max = createBinding(sensors, "mem_max");
-	const temp_available = temp((temp) => temp > 0);
-	const temp_str = temp((temp) => `${Math.round(temp)}°C`);
+  const temp = createBinding(sensors, "mem_temp");
+  const temp_max = createBinding(sensors, "mem_max");
+  const temp_available = temp((temp) => temp > 0);
+  const temp_str = temp((temp) => `${Math.round(temp)}°C`);
 
-	const color = createComputed(() =>
-		animate("memory", () => {
-			const u = usage();
-			const t = temp();
-			const m = temp_max();
+  const color = createComputed(() =>
+    animate("memory", () => {
+      const u = usage();
+      const t = temp();
+      const m = temp_max();
 
-			if (u > 80 || t > m) {
-				return "red";
-			} else if (u > 60 || t > m * 0.8) {
-				return "yellow";
-			} else {
-				return "green";
-			}
-		}),
-	);
+      if (u > 80 || t > m) {
+        return "red";
+      } else if (u > 60 || t > m * 0.8) {
+        return "yellow";
+      } else {
+        return "green";
+      }
+    }),
+  );
 
-	return (
-		<menubutton
-			halign={Gtk.Align.CENTER}
-			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			class={color}
-			tooltipText={usage_str}
-		>
-			<image iconName="lucide-memory-stick" />
-			<popover>
-				<box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
-					<box spacing={16}>
-						<label label="Usage" hexpand halign={Gtk.Align.START} />
-						<label label={usage_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16} visible={temp_available}>
-						<label label="Temp" hexpand halign={Gtk.Align.START} />
-						<label label={temp_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="Used" hexpand halign={Gtk.Align.START} />
-						<label label={used_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="Available" hexpand halign={Gtk.Align.START} />
-						<label label={avail_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="Cached" hexpand halign={Gtk.Align.START} />
-						<label label={cached_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="Free" hexpand halign={Gtk.Align.START} />
-						<label label={free_str} hexpand halign={Gtk.Align.END} />
-					</box>
-				</box>
-			</popover>
-		</menubutton>
-	);
+  return (
+    <menubutton
+      halign={Gtk.Align.CENTER}
+      cursor={Gdk.Cursor.new_from_name("pointer", null)}
+      class={color}
+      tooltipText={usage_str}
+    >
+      <image iconName="lucide-memory-stick" />
+      <popover>
+        <box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
+          <box spacing={16}>
+            <label label="Usage" hexpand halign={Gtk.Align.START} />
+            <label label={usage_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16} visible={temp_available}>
+            <label label="Temp" hexpand halign={Gtk.Align.START} />
+            <label label={temp_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="Used" hexpand halign={Gtk.Align.START} />
+            <label label={used_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="Available" hexpand halign={Gtk.Align.START} />
+            <label label={avail_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="Cached" hexpand halign={Gtk.Align.START} />
+            <label label={cached_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="Free" hexpand halign={Gtk.Align.START} />
+            <label label={free_str} hexpand halign={Gtk.Align.END} />
+          </box>
+        </box>
+      </popover>
+    </menubutton>
+  );
 }
 
 function DiskUsage(): JSX.Element {
-	const system = System.get_default();
-	const sensors = Sensors.get_default();
+  const system = System.get_default();
+  const sensors = Sensors.get_default();
 
-	const usage = createBinding(system, "disk_usage");
-	const usage_str = usage((usage) => `${Math.round(usage)}%`);
+  const usage = createBinding(system, "disk_usage");
+  const usage_str = usage((usage) => `${Math.round(usage)}%`);
 
-	const read = createBinding(system, "disk_read");
-	const read_str = read((read) => `${formatBinary(read)}/s`);
+  const read = createBinding(system, "disk_read");
+  const read_str = read((read) => `${formatBinary(read)}/s`);
 
-	const write = createBinding(system, "disk_write");
-	const write_str = write((write) => `${formatBinary(write)}/s`);
+  const write = createBinding(system, "disk_write");
+  const write_str = write((write) => `${formatBinary(write)}/s`);
 
-	const temp = createBinding(sensors, "disk_temp");
-	const temp_max = createBinding(sensors, "disk_max");
-	const temp_available = temp((temp) => temp > 0);
-	const temp_str = temp((temp) => `${Math.round(temp)}°C`);
+  const temp = createBinding(sensors, "disk_temp");
+  const temp_max = createBinding(sensors, "disk_max");
+  const temp_available = temp((temp) => temp > 0);
+  const temp_str = temp((temp) => `${Math.round(temp)}°C`);
 
-	const color = createComputed(() =>
-		animate("disk", () => {
-			const u = usage();
-			const t = temp();
-			const m = temp_max();
+  const color = createComputed(() =>
+    animate("disk", () => {
+      const u = usage();
+      const t = temp();
+      const m = temp_max();
 
-			if (u > 80 || t > m) {
-				return "red";
-			} else if (u > 60 || t > m * 0.8) {
-				return "yellow";
-			} else {
-				return "green";
-			}
-		}),
-	);
+      if (u > 80 || t > m) {
+        return "red";
+      } else if (u > 60 || t > m * 0.8) {
+        return "yellow";
+      } else {
+        return "green";
+      }
+    }),
+  );
 
-	return (
-		<menubutton
-			halign={Gtk.Align.CENTER}
-			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			class={color}
-		>
-			<image iconName="lucide-hard-drive" />
-			<popover>
-				<box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
-					<box spacing={16}>
-						<label label="Usage" hexpand halign={Gtk.Align.START} />
-						<label label={usage_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16} visible={temp_available}>
-						<label label="Temp" hexpand halign={Gtk.Align.START} />
-						<label label={temp_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="Read" hexpand halign={Gtk.Align.START} />
-						<label label={read_str} hexpand halign={Gtk.Align.END} />
-					</box>
-					<box spacing={16}>
-						<label label="Write" hexpand halign={Gtk.Align.START} />
-						<label label={write_str} hexpand halign={Gtk.Align.END} />
-					</box>
-				</box>
-			</popover>
-		</menubutton>
-	);
+  return (
+    <menubutton
+      halign={Gtk.Align.CENTER}
+      cursor={Gdk.Cursor.new_from_name("pointer", null)}
+      class={color}
+    >
+      <image iconName="lucide-hard-drive" />
+      <popover>
+        <box spacing={5} orientation={Gtk.Orientation.VERTICAL}>
+          <box spacing={16}>
+            <label label="Usage" hexpand halign={Gtk.Align.START} />
+            <label label={usage_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16} visible={temp_available}>
+            <label label="Temp" hexpand halign={Gtk.Align.START} />
+            <label label={temp_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="Read" hexpand halign={Gtk.Align.START} />
+            <label label={read_str} hexpand halign={Gtk.Align.END} />
+          </box>
+          <box spacing={16}>
+            <label label="Write" hexpand halign={Gtk.Align.START} />
+            <label label={write_str} hexpand halign={Gtk.Align.END} />
+          </box>
+        </box>
+      </popover>
+    </menubutton>
+  );
 }
 
 function BatteryUsage() {
-	const bat = Battery.get_default();
-	if (!bat.isPresent) return <box visible={false} />;
+  const bat = Battery.get_default();
+  if (!bat.isPresent) return <box visible={false} />;
 
-	const charge = createBinding(bat, "percentage");
+  const charge = createBinding(bat, "percentage");
 
-	const color = charge((charge) =>
-		animate("battery", () => {
-			if (charge < 0.2) {
-				return "red";
-			} else if (charge < 0.4) {
-				return "yellow";
-			} else {
-				return "green";
-			}
-		}),
-	);
-	const usage_str = charge((charge) => `${Math.round(charge * 100)}%`);
+  const color = charge((charge) =>
+    animate("battery", () => {
+      if (charge < 0.2) {
+        return "red";
+      } else if (charge < 0.4) {
+        return "yellow";
+      } else {
+        return "green";
+      }
+    }),
+  );
+  const usage_str = charge((charge) => `${Math.round(charge * 100)}%`);
 
-	return (
-		<button
-			halign={Gtk.Align.CENTER}
-			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			class={color}
-			tooltipText={usage_str}
-		>
-			<image iconName={bat.battery_icon_name} />
-		</button>
-	);
+  return (
+    <button
+      halign={Gtk.Align.CENTER}
+      cursor={Gdk.Cursor.new_from_name("pointer", null)}
+      class={color}
+      tooltipText={usage_str}
+    >
+      <image iconName={bat.battery_icon_name} />
+    </button>
+  );
 }
 
 function TailscaleWidget(): JSX.Element {
-	const tailscale = Tailscale.get_default();
-	const connected = createBinding(tailscale, "connected");
+  const tailscale = Tailscale.get_default();
+  const connected = createBinding(tailscale, "connected");
 
-	const color = connected((connected) =>
-		animate("tailscale", () => (connected ? "green" : "gray")),
-	);
+  const color = connected((connected) =>
+    animate("tailscale", () => (connected ? "green" : "gray")),
+  );
 
-	return (
-		<button
-			onClicked={() => execAsync("xdg-open https://login.tailscale.com/admin/machines")}
-			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			class={color}
-			tooltipText="Tailscale"
-		>
-			<image iconName={getIcon("tailscale")} />
-		</button>
-	);
+  return (
+    <button
+      onClicked={() => execAsync("xdg-open https://login.tailscale.com/admin/machines")}
+      cursor={Gdk.Cursor.new_from_name("pointer", null)}
+      class={color}
+      tooltipText="Tailscale"
+    >
+      <image iconName={getIcon("tailscale")} />
+    </button>
+  );
 }
 
 function SyncthingWidget(): JSX.Element {
-	const syncthing = Syncthing.get_default();
-	const connected = createBinding(syncthing, "connected");
+  const syncthing = Syncthing.get_default();
+  const connected = createBinding(syncthing, "connected");
 
-	const color = connected((connected) =>
-		animate("syncthing", () => (connected ? "green" : "gray")),
-	);
+  const color = connected((connected) =>
+    animate("syncthing", () => (connected ? "green" : "gray")),
+  );
 
-	return (
-		<button
-			onClicked={() => execAsync("xdg-open http://localhost:8384/")}
-			cursor={Gdk.Cursor.new_from_name("pointer", null)}
-			class={color}
-			tooltipText="Syncthing"
-		>
-			<image iconName={getIcon("syncthing")} />
-		</button>
-	);
+  return (
+    <button
+      onClicked={() => execAsync("xdg-open http://localhost:8384/")}
+      cursor={Gdk.Cursor.new_from_name("pointer", null)}
+      class={color}
+      tooltipText="Syncthing"
+    >
+      <image iconName={getIcon("syncthing")} />
+    </button>
+  );
 }
 
 function SysTray(): JSX.Element {
-	const tray = Tray.get_default();
-	const items = createBinding(tray, "items");
+  const tray = Tray.get_default();
+  const items = createBinding(tray, "items");
 
-	const init = (btn: Gtk.MenuButton, item: AstalTray.TrayItem) => {
-		try {
-			btn.menuModel = item.menuModel;
-			btn.insert_action_group("dbusmenu", item.actionGroup);
-			item.connect("notify::action-group", () => {
-				btn.insert_action_group("dbusmenu", item.actionGroup);
-			});
-		} catch (e) {
-			console.error("Failed to initialize tray item", e);
-		}
-	};
+  const init = (btn: Gtk.MenuButton, item: AstalTray.TrayItem) => {
+    try {
+      btn.menuModel = item.menuModel;
+      btn.insert_action_group("dbusmenu", item.actionGroup);
+      item.connect("notify::action-group", () => {
+        btn.insert_action_group("dbusmenu", item.actionGroup);
+      });
+    } catch (e) {
+      console.error("Failed to initialize tray item", e);
+    }
+  };
 
-	const network = Network.get_default();
-	const connectivity = createBinding(network, "connectivity");
-	const connected = connectivity((connectivity) =>
-		animate("network", () => {
-			switch (connectivity) {
-				case Network.Connectivity.FULL:
-					return "green";
-				case Network.Connectivity.LIMITED:
-					return "yellow";
-				case Network.Connectivity.NONE:
-					return "red";
-				default:
-					return "gray";
-			}
-		}),
-	);
+  const network = Network.get_default();
+  const connectivity = createBinding(network, "connectivity");
+  const connected = connectivity((connectivity) =>
+    animate("network", () => {
+      switch (connectivity) {
+        case Network.Connectivity.FULL:
+          return "green";
+        case Network.Connectivity.LIMITED:
+          return "yellow";
+        case Network.Connectivity.NONE:
+          return "red";
+        default:
+          return "gray";
+      }
+    }),
+  );
 
-	return (
-		<box class="tray">
-			<For each={items}>
-				{(item) => {
-					if (item.get_title() == "Network") {
-						return (
-							<menubutton
-								$={(self) => init(self, item)}
-								class={connected}
-								cursor={Gdk.Cursor.new_from_name("pointer", null)}
-							>
-								<image gicon={createBinding(item, "gicon")} />
-							</menubutton>
-						);
-					}
+  return (
+    <box class="tray">
+      <For each={items}>
+        {(item) => {
+          if (item.get_title() == "Network") {
+            return (
+              <menubutton
+                $={(self) => init(self, item)}
+                class={connected}
+                cursor={Gdk.Cursor.new_from_name("pointer", null)}
+              >
+                <image gicon={createBinding(item, "gicon")} />
+              </menubutton>
+            );
+          }
 
-					return (
-						<menubutton
-							$={(self) => init(self, item)}
-							cursor={Gdk.Cursor.new_from_name("pointer", null)}
-						>
-							<image gicon={createBinding(item, "gicon")} />
-						</menubutton>
-					);
-				}}
-			</For>
-		</box>
-	);
+          return (
+            <menubutton
+              $={(self) => init(self, item)}
+              cursor={Gdk.Cursor.new_from_name("pointer", null)}
+            >
+              <image gicon={createBinding(item, "gicon")} />
+            </menubutton>
+          );
+        }}
+      </For>
+    </box>
+  );
 }
 
 function Time(): JSX.Element {
-	const time = createPoll("", 1000, 'date "+%I:%M %D"');
+  const time = createPoll("", 1000, 'date "+%I:%M %D"');
 
-	return (
-		<menubutton class="menu" cursor={Gdk.Cursor.new_from_name("pointer", null)}>
-			<label label={time} class="time" />
-			<popover>
-				<Gtk.Calendar />
-			</popover>
-		</menubutton>
-	);
+  return (
+    <menubutton class="menu" cursor={Gdk.Cursor.new_from_name("pointer", null)}>
+      <label label={time} class="time" />
+      <popover>
+        <Gtk.Calendar />
+      </popover>
+    </menubutton>
+  );
 }

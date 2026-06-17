@@ -1,17 +1,18 @@
 name: update
 
 on:
-  schedule:
-    - cron: "0 9 * * *" # every day at 09:00 UTC
+  # schedule:
+  #   - cron: "0 9 * * *" # every day at 09:00 UTC
   workflow_dispatch:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   renovate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
     steps:
       - id: init
         name: Initialize

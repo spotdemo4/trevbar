@@ -1,41 +1,42 @@
 {
-	"typescript.tsdk": "node_modules/typescript/lib",
-	"editor.formatOnSave": true,
-	"files.associations": {
-		"renovate.json": "jsonc",
-		".envrc.project": "dotenv",
-		".envrc": "dotenv"
-	},
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "files.associations": {
+    "renovate.json": "jsonc",
+    ".envrc.project": "dotenv",
+    ".envrc": "dotenv",
+    "*.css": "tailwindcss"
+  },
 
-	// prettier
-	"[javascript]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	},
-	"[typescript]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	},
-	"[typescriptreact]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	},
+  "explorer.fileNesting.patterns": {
+    ".envrc.project": ".envrc",
+    "flake.nix": "flake.lock,treefmt.toml",
+    "package.json": "package-lock.json,.npmrc",
+    "README.md": "*.md,LICENSE"
+  },
 
-	// eslint
-	"eslint.validate": ["javascript", "typescript", "typescriptreact"],
-	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": "explicit"
-	},
+  "json.schemaDownload.trustedDomains": {
+    "https://docs.renovatebot.com/": true
+  },
 
-	// nix
-	"nix.enableLanguageServer": true,
-	"nix.serverPath": "nixd",
-	"[nix]": {
-		"editor.defaultFormatter": "jnoortheen.nix-ide"
-	},
+  // oxc.oxc-vscode
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "always"
+  },
 
-	// json
-	"json.schemaDownload.trustedDomains": {
-		"https://docs.renovatebot.com/": true
-	},
-
-	// actions
-	"editor.defaultFormatter": "esbenp.prettier-vscode"
+  // nix
+  "[nix]": {
+    "editor.defaultFormatter": "jnoortheen.nix-ide"
+  },
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nixd",
+  "nix.serverSettings": {
+    "nixd": {
+      "nixpkgs": {
+        "expr": "(builtins.getFlake (builtins.toString ./.)).outputs.nixpkgs.${builtins.currentSystem}"
+      }
+    }
+  }
 }

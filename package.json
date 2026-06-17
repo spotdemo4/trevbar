@@ -1,26 +1,27 @@
 {
-	"name": "trevbar",
-	"version": "0.5.3",
-	"type": "module",
-	"scripts": {
-		"gen": "ags types -u -d . && prettier --write tsconfig.json",
-		"dev": "ags run src/app.tsx"
-	},
-	"dependencies": {
-		"filesize": "^11.0.17"
-	},
-	"optionalDependencies": {
-		"ags": "*"
-	},
-	"devDependencies": {
-		"@eslint/compat": "^2.1.0",
-		"@eslint/js": "^10.0.0",
-		"@ianvs/prettier-plugin-sort-imports": "^4.7.1",
-		"@types/node": "^24.13.2",
-		"eslint": "^10.5.0",
-		"eslint-config-prettier": "^10.1.8",
-		"globals": "^17.6.0",
-		"prettier": "^3.8.4",
-		"typescript-eslint": "^8.61.1"
-	}
+  "name": "trevbar",
+  "version": "0.5.3",
+  "description": "Trev's status bar",
+  "license": "MIT",
+  "repository": {
+    "url": "https://trev.zip/trev/trevbar"
+  },
+  "type": "module",
+  "scripts": {
+    "gen": "ags types -u -d . && oxfmt --write tsconfig.json",
+    "dev": "ags run src/app.tsx"
+  },
+  "dependencies": {
+    "filesize": "^11.0.17"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "typescript": "^6.0.3"
+  },
+  "optionalDependencies": {
+    "ags": "*"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
 }

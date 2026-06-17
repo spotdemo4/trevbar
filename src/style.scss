@@ -10,142 +10,142 @@ $yellow: #f9dc5c;
 $gray: #595959;
 $button_size: 18px;
 $colors: (
-	"green": $green,
-	"yellow": $yellow,
-	"red": $red,
-	"gray": $gray,
+  "green": $green,
+  "yellow": $yellow,
+  "red": $red,
+  "gray": $gray,
 );
 
 // Generate all keyframe animations
 @each $from-name, $from-color in $colors {
-	@each $to-name, $to-color in $colors {
-		@if $from-name != $to-name {
-			@keyframes #{$from-name}-to-#{$to-name} {
-				from {
-					border-color: $from-color;
-				}
-				to {
-					border-color: $to-color;
-				}
-			}
-		}
-	}
+  @each $to-name, $to-color in $colors {
+    @if $from-name != $to-name {
+      @keyframes #{$from-name}-to-#{$to-name} {
+        from {
+          border-color: $from-color;
+        }
+        to {
+          border-color: $to-color;
+        }
+      }
+    }
+  }
 }
 
 @mixin button {
-	margin-left: 2.5px;
-	margin-right: 2.5px;
+  margin-left: 2.5px;
+  margin-right: 2.5px;
 
-	background-color: $background;
-	background-image: none;
+  background-color: $background;
+  background-image: none;
 
-	transition-property: border-color;
-	transition-duration: 150ms;
-	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-property: border-color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 
-	border-width: 2px;
-	border-style: solid;
-	border-color: $gray;
-	border-radius: 6px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: $gray;
+  border-radius: 6px;
 
-	> button {
-		background-image: none;
-		background-color: transparent;
-	}
+  > button {
+    background-image: none;
+    background-color: transparent;
+  }
 
-	&.green {
-		border-color: $green;
-	}
-	&.yellow {
-		border-color: $yellow;
-	}
-	&.red {
-		border-color: $red;
-	}
-	&.gray {
-		border-color: $gray;
-	}
+  &.green {
+    border-color: $green;
+  }
+  &.yellow {
+    border-color: $yellow;
+  }
+  &.red {
+    border-color: $red;
+  }
+  &.gray {
+    border-color: $gray;
+  }
 
-	@each $from-name, $from-color in $colors {
-		@each $to-name, $to-color in $colors {
-			@if $from-name != $to-name {
-				&.#{$from-name}-to-#{$to-name} {
-					animation: #{$from-name}-to-#{$to-name} 1s 1;
-					border-color: $to-color;
-				}
-			}
-		}
-	}
+  @each $from-name, $from-color in $colors {
+    @each $to-name, $to-color in $colors {
+      @if $from-name != $to-name {
+        &.#{$from-name}-to-#{$to-name} {
+          animation: #{$from-name}-to-#{$to-name} 1s 1;
+          border-color: $to-color;
+        }
+      }
+    }
+  }
 
-	&:checked {
-		border-color: $green;
-	}
-	&:hover {
-		border-color: $blue;
-	}
+  &:checked {
+    border-color: $green;
+  }
+  &:hover {
+    border-color: $blue;
+  }
 }
 
 * {
-	outline: none;
-	border: none;
+  outline: none;
+  border: none;
 }
 
 window.Bar {
-	font-weight: bold;
+  font-weight: bold;
 
-	> centerbox {
-		padding-top: 3px;
-		padding-bottom: 3px;
-		padding-left: 3px;
-		padding-right: 3px;
-	}
+  > centerbox {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 3px;
+    padding-right: 3px;
+  }
 
-	.workspaces {
-		> button {
-			@include button;
+  .workspaces {
+    > button {
+      @include button;
 
-			> box {
-				> image {
-					padding-left: 2.5px;
-					padding-right: 2.5px;
-					font-size: $button_size;
-				}
-			}
-		}
-	}
+      > box {
+        > image {
+          padding-left: 2.5px;
+          padding-right: 2.5px;
+          font-size: $button_size;
+        }
+      }
+    }
+  }
 
-	.title {
-		margin-left: 2.5px;
-		margin-right: 2.5px;
-		padding-left: 8px;
-		padding-right: 8px;
+  .title {
+    margin-left: 2.5px;
+    margin-right: 2.5px;
+    padding-left: 8px;
+    padding-right: 8px;
 
-		background-color: $background;
-		border-radius: 6px;
+    background-color: $background;
+    border-radius: 6px;
 
-		image {
-			font-size: $button_size;
-			margin-right: 7px;
-		}
+    image {
+      font-size: $button_size;
+      margin-right: 7px;
+    }
 
-		label {
-			font-size: 10pt;
-		}
-	}
+    label {
+      font-size: 10pt;
+    }
+  }
 
-	.tray {
-		> button,
-		> menubutton {
-			@include button;
-		}
+  .tray {
+    > button,
+    > menubutton {
+      @include button;
+    }
 
-		.time {
-			color: white;
-			font-weight: bold;
-		}
+    .time {
+      color: white;
+      font-weight: bold;
+    }
 
-		image {
-			font-size: $button_size;
-		}
-	}
+    image {
+      font-size: $button_size;
+    }
+  }
 }

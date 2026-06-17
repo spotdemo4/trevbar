@@ -7,22 +7,12 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
-  npm:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Initialize
-        uses: spotdemo4/nix-init@0ed51e7d18520fd8adba3839acc6ded28fcb4db3 # v1.51.0
-        with:
-          shell: vulnerable
-
-      - name: Run npm audit
-        run: npm audit --audit-level moderate
-
   nix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
     steps:
       - name: Initialize
         uses: spotdemo4/nix-init@0ed51e7d18520fd8adba3839acc6ded28fcb4db3 # v1.51.0
@@ -33,12 +23,27 @@ jobs:
         run: flake-checker -f
 
   actions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
     steps:
       - name: Initialize
         uses: spotdemo4/nix-init@0ed51e7d18520fd8adba3839acc6ded28fcb4db3 # v1.51.0
         with:
           shell: vulnerable
 
-      - name: Run octoscan
-        run: octoscan scan .github
+      - name: Run zizmor
+        run: zizmor .github .forgejo
+
+  npm:
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+    steps:
+      - name: Initialize
+        uses: spotdemo4/nix-init@0ed51e7d18520fd8adba3839acc6ded28fcb4db3 # v1.51.0
+        with:
+          shell: vulnerable
+
+      - name: Run npm audit
+        run: npm audit --audit-level moderate --omit optional

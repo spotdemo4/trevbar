@@ -4,40 +4,40 @@ import { interval } from "ags/time";
 
 @register({ GTypeName: "Tailscale" })
 export default class Tailscale extends GObject.Object {
-	static instance: Tailscale;
+  static instance: Tailscale;
 
-	static get_default() {
-		if (!this.instance) this.instance = new Tailscale();
+  static get_default() {
+    if (!this.instance) this.instance = new Tailscale();
 
-		return this.instance;
-	}
+    return this.instance;
+  }
 
-	#connected = false;
+  #connected = false;
 
-	@getter(Boolean)
-	get connected() {
-		return this.#connected;
-	}
+  @getter(Boolean)
+  get connected() {
+    return this.#connected;
+  }
 
-	constructor() {
-		super();
+  constructor() {
+    super();
 
-		interval(5000, async () => {
-			try {
-				await execAsync("tailscale status");
+    interval(5000, async () => {
+      try {
+        await execAsync("tailscale status");
 
-				if (!this.#connected) {
-					this.#connected = true;
-					this.notify("connected");
-				}
-			} catch {
-				if (this.#connected) {
-					this.#connected = false;
-					this.notify("connected");
-				}
+        if (!this.#connected) {
+          this.#connected = true;
+          this.notify("connected");
+        }
+      } catch {
+        if (this.#connected) {
+          this.#connected = false;
+          this.notify("connected");
+        }
 
-				return;
-			}
-		});
-	}
+        return;
+      }
+    });
+  }
 }

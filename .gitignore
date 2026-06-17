@@ -2,10 +2,16 @@
 /.envrc
 /docker-compose*
 
-# node
-/node_modules/
-/@girs/
+# agents
+/.agents/
+/.claude/
+/.codex/
 
 # nix
 /result*
 /.direnv/
+
+# node
+/node_modules/
+/build/
+/@girs/

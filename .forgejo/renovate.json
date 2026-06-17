@@ -4,12 +4,17 @@
   // self-hosted
   "onboarding": false,
   "requireConfig": "ignored",
-  "platform": "github",
-  "repositories": ["spotdemo4/trevbar"],
+  "platform": "forgejo",
+  "endpoint": "https://trev.zip/api/v1",
+  "repositories": ["trev/trevbar"],
   "allowedCommands": ["npm audit fix --omit optional"],
 
   // repository
   "extends": ["config:recommended"],
+  "addLabels": ["dep"],
+  "nix": {
+    "enabled": true
+  },
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true,
@@ -19,14 +24,6 @@
       "commands": ["npm audit fix --omit optional"]
     }
   },
-  "nix": {
-    "enabled": true
-  },
-  "vulnerabilityAlerts": {
-    "enabled": true,
-    "automerge": true
-  },
-  "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
@@ -34,21 +31,17 @@
     },
     {
       "matchManagers": ["nix"],
-      "groupName": "nix inputs"
+      "addLabels": ["nix"]
     },
     {
       "matchManagers": ["github-actions"],
-      "groupName": "github actions"
+      "addLabels": ["actions"]
     },
     {
       "matchManagers": ["npm"],
       "rangeStrategy": "bump",
+      "addLabels": ["node"],
       "postUpdateOptions": ["npmInstallTwice"]
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "node packages"
     },
     {
       "matchManagers": ["npm"],

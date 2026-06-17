@@ -1,8 +1,8 @@
 name: bump
 
 on:
-  # schedule:
-  #   - cron: "0 22 * * 1-5" # every weekday at 22:00 UTC
+  schedule:
+    - cron: "0 22 * * 1-5" # every weekday at 22:00 UTC
   workflow_dispatch:
     inputs:
       force:
@@ -14,28 +14,25 @@ on:
           - "true"
           - "false"
 
-concurrency:
-  group: release
-
-permissions:
-  contents: read
+# yaml-language-server-disable is not allowed
+enable-openid-connect: true
 
 jobs:
   bump:
+    # zizmor: ignore[excessive-permissions]
     runs-on: ubuntu-24.04
-    permissions:
-      id-token: write
     steps:
-      - id: init
-        name: Initialize
+      - name: Initialize
         uses: spotdemo4/nix-init@0ed51e7d18520fd8adba3839acc6ded28fcb4db3 # v1.51.0
         with:
-          app_id: ${{ vars.CLIENT_ID }}
-          app_key: ${{ secrets.PRIVATE_KEY }}
+          token: ${{ secrets.DOCTOR_TOKEN }}
+          github_token: ${{ secrets.GH_TOKEN }}
+          niks3_url: https://niks3.trev.zip
+          fetch_depth: 0
           shell: bump
 
       - name: Bump
         run: bumper
         env:
-          GITHUB_TOKEN: ${{ steps.init.outputs.token }}
+          GITHUB_TOKEN: ${{ secrets.DOCTOR_TOKEN }}
           FORCE: ${{ inputs.force }}

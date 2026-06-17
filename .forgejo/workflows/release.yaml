@@ -1,0 +1,30 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+# yaml-language-server-disable is not allowed
+enable-openid-connect: true
+
+jobs:
+  release:
+    # zizmor: ignore[excessive-permissions]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Initialize
+        uses: spotdemo4/nix-init@0ed51e7d18520fd8adba3839acc6ded28fcb4db3 # v1.51.0
+        with:
+          token: ${{ secrets.DOCTOR_TOKEN }}
+          github_token: ${{ secrets.GH_TOKEN }}
+          niks3_url: https://niks3.trev.zip
+          shell: release
+          fetch_depth: 0
+
+      - name: Release to Forgejo
+        run: flake-release
+        env:
+          REGISTRY: trev.zip
+          GITHUB_TOKEN: ${{ secrets.DOCTOR_TOKEN }}
+          DELETE_OLD_RELEASE_ARTIFACTS: true

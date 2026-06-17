@@ -65,7 +65,7 @@
         "astal": "astal",
         "nixpkgs": "nixpkgs",
         "systems": "systems",
-        "trev": "trev"
+        "trevpkgs": "trevpkgs"
       }
     },
     "schema": {
@@ -98,7 +98,7 @@
         "type": "github"
       }
     },
-    "trev": {
+    "trevpkgs": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -109,16 +109,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1781420388,
-        "narHash": "sha256-aRhbDggg8MorgUWihHFj+qtkglqxkAGIwbRqwVJyhqI=",
+        "lastModified": 1781642298,
+        "narHash": "sha256-/z8x41KnY4FwW2TQI44nhLA5JYH3QI58ervT7f6gJ/0=",
         "owner": "spotdemo4",
-        "repo": "nur",
-        "rev": "0a85d32350f1cbcd2534b89ebb1b5bfd93a0b74e",
+        "repo": "trevpkgs",
+        "rev": "0403cf5f560031834cf9b8cc93d74ae55d564cd0",
         "type": "github"
       },
       "original": {
         "owner": "spotdemo4",
-        "repo": "nur",
+        "repo": "trevpkgs",
         "type": "github"
       }
     }
