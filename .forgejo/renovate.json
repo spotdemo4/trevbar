@@ -6,7 +6,7 @@
   "requireConfig": "ignored",
   "platform": "forgejo",
   "endpoint": "https://trev.zip/api/v1",
-  "repositories": ["trev/trevbar"],
+  "repositories": ["llc/trevbar"],
   "allowedCommands": ["npm audit fix --omit optional"],
 
   // repository
