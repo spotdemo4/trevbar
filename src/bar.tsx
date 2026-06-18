@@ -100,8 +100,8 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
           <BatteryUsage />
           <TailscaleWidget />
           <SyncthingWidget />
-          <SysTray />
           <IdleInhibitor />
+          <SysTray />
           <Time />
         </box>
       </centerbox>
