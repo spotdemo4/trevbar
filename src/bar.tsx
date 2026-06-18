@@ -288,11 +288,13 @@ function GpuUsage(): JSX.Element {
 
   const encode_str = createBinding(nvtop, "encode")((usage) => `${usage}%`);
 
-  const color = usage((usage) =>
+  const color = createComputed(() =>
     animate("gpu", () => {
-      if (usage > 80) {
+      const u = usage();
+
+      if (u > 80) {
         return "red";
-      } else if (usage > 60) {
+      } else if (u > 60) {
         return "yellow";
       } else {
         return "green";
@@ -480,11 +482,13 @@ function BatteryUsage() {
 
   const charge = createBinding(bat, "percentage");
 
-  const color = charge((charge) =>
+  const color = createComputed(() =>
     animate("battery", () => {
-      if (charge < 0.2) {
+      const c = charge();
+
+      if (c < 0.2) {
         return "red";
-      } else if (charge < 0.4) {
+      } else if (c < 0.4) {
         return "yellow";
       } else {
         return "green";
@@ -509,9 +513,7 @@ function TailscaleWidget(): JSX.Element {
   const tailscale = Tailscale.get_default();
   const connected = createBinding(tailscale, "connected");
 
-  const color = connected((connected) =>
-    animate("tailscale", () => (connected ? "green" : "gray")),
-  );
+  const color = createComputed(() => animate("tailscale", () => (connected() ? "green" : "gray")));
 
   return (
     <button
@@ -529,9 +531,7 @@ function SyncthingWidget(): JSX.Element {
   const syncthing = Syncthing.get_default();
   const connected = createBinding(syncthing, "connected");
 
-  const color = connected((connected) =>
-    animate("syncthing", () => (connected ? "green" : "gray")),
-  );
+  const color = createComputed(() => animate("syncthing", () => (connected() ? "green" : "gray")));
 
   return (
     <button
@@ -563,9 +563,9 @@ function SysTray(): JSX.Element {
 
   const network = Network.get_default();
   const connectivity = createBinding(network, "connectivity");
-  const connected = connectivity((connectivity) =>
+  const connected = createComputed(() =>
     animate("network", () => {
-      switch (connectivity) {
+      switch (connectivity()) {
         case Network.Connectivity.FULL:
           return "green";
         case Network.Connectivity.LIMITED:
@@ -609,8 +609,8 @@ function SysTray(): JSX.Element {
 }
 
 function IdleInhibitor(): JSX.Element {
-  const color = idleInhibited((inhibited) =>
-    animate("idle-inhibitor", () => (inhibited ? "green" : "gray")),
+  const color = createComputed(() =>
+    animate("idle-inhibitor", () => (idleInhibited() ? "green" : "gray")),
   );
   const tooltipText = idleInhibited((inhibited) =>
     inhibited ? "Idle inhibitor enabled" : "Idle inhibitor disabled",

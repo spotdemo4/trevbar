@@ -71,7 +71,6 @@ $colors: (
       @if $from-name != $to-name {
         &.#{$from-name}-to-#{$to-name} {
           animation: #{$from-name}-to-#{$to-name} 1s 1;
-          border-color: $to-color;
         }
       }
     }
