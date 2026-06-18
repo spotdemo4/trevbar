@@ -58,6 +58,15 @@ export function sortByMaster(clients: Hyprland.Client[]) {
 }
 
 export function getIcon(name?: string, fallback?: string): string {
+  if (!name) {
+    if (fallback) {
+      console.warn(`No icon name provided, trying fallback "${fallback}"`);
+      return getIcon(fallback);
+    }
+
+    return "item-missing-symbolic";
+  }
+
   // Hard-coded icons
   switch (name) {
     case "zen-beta":
@@ -80,13 +89,13 @@ export function getIcon(name?: string, fallback?: string): string {
       return getIcon("vscodium", fallback);
   }
 
-  if (!name || !iconTheme.has_icon(name)) {
+  if (!iconTheme.has_icon(name)) {
+    console.warn(`Icon "${name}" not found`);
+
     if (fallback) {
-      console.warn(`Icon "${name}" not found, trying fallback "${fallback}"`);
       return getIcon(fallback);
     }
 
-    console.warn(`Fallback "${name}" not found`);
     return "item-missing-symbolic";
   }
 

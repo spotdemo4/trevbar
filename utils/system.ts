@@ -214,7 +214,7 @@ export default class System extends GObject.Object {
     const index = System.disk.xdisk_sectors_write.indexOf(
       Math.max(...System.disk.xdisk_sectors_write),
     );
-    console.log("Disk index:", index);
+    console.debug("Disk index:", index);
     let prevRead = System.disk.xdisk_sectors_read[index];
     let prevWrite = System.disk.xdisk_sectors_write[index];
     let maxRead = 0;
