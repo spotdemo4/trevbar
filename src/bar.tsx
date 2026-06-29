@@ -144,7 +144,7 @@ function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
       cursor={Gdk.Cursor.new_from_name("pointer", null)}
       active={focused}
     >
-      <box>
+      <box halign={Gtk.Align.CENTER}>
         <For each={clients}>
           {(client) => (
             <image
