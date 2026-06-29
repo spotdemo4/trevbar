@@ -33,8 +33,10 @@ $colors: (
 }
 
 @mixin button {
-  margin-left: 2.5px;
-  margin-right: 2.5px;
+  min-width: 24px;
+  min-height: 24px;
+  margin: 2.5px;
+  padding: 4px;
 
   background-color: $background;
   background-image: none;
@@ -49,6 +51,8 @@ $colors: (
   border-radius: 6px;
 
   > button {
+    margin: 0;
+    padding: 0;
     background-image: none;
     background-color: transparent;
   }
