@@ -1,4 +1,4 @@
-import { createBinding, createComputed, createState, For } from "ags";
+import { createBinding, createComputed, createState, For, With } from "ags";
 import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
 import { execAsync, subprocess } from "ags/process";
@@ -161,24 +161,87 @@ function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
 function Title(): JSX.Element {
   const hypr = Hyprland.get_default();
   const focused = createBinding(hypr, "focusedClient");
-  const clients = createBinding(hypr, "clients");
-
-  const client = createComputed(() => {
-    const f = focused();
-    if (!f) return null;
-
-    const c = clients();
-    return c.find((client) => client.address === f.address) || null;
-  });
-
-  const title = client((client) => client?.title ?? "");
-  const available = client((client) => (client ? true : false));
-  const icon = client((client) =>
-    client ? getIcon(client.initialClass, client.title) : "item-missing-symbolic",
-  );
 
   return (
-    <box class="title" visible={available}>
+    <With value={focused}>{(client) => (client ? <FocusedTitle client={client} /> : <box />)}</With>
+  );
+}
+
+function FocusedTitle({ client }: { client: Hyprland.Client }): JSX.Element {
+  const group = createBinding(client, "group");
+
+  return (
+    <With value={group}>
+      {(group) =>
+        group ? (
+          <GroupedTitle client={client} group={group} />
+        ) : (
+          <box class="title">
+            <TitleClient client={client} active />
+          </box>
+        )
+      }
+    </With>
+  );
+}
+
+function GroupedTitle({
+  client,
+  group,
+}: {
+  client: Hyprland.Client;
+  group: Hyprland.Group;
+}): JSX.Element {
+  const clients = createBinding(group, "clients");
+  const arranged = clients((members) => {
+    const activeIndex = members.findIndex((member) => member.address === client.address);
+    if (activeIndex < 0) return { previous: [], next: [] };
+
+    const previousCount = Math.floor((members.length - 1) / 2);
+    const nextCount = members.length - previousCount - 1;
+    const previous = Array.from(
+      { length: previousCount },
+      (_, index) =>
+        members[(activeIndex - previousCount + index + members.length) % members.length],
+    );
+    const next = Array.from(
+      { length: nextCount },
+      (_, index) => members[(activeIndex + index + 1) % members.length],
+    );
+
+    return { previous, next };
+  });
+  const previous = arranged(({ previous }) => previous);
+  const next = arranged(({ next }) => next);
+
+  return (
+    <centerbox class="title grouped-title">
+      <box $type="start" halign={Gtk.Align.END}>
+        <For each={previous}>{(member) => <TitleClient client={member} active={false} />}</For>
+      </box>
+      <box $type="center">
+        <TitleClient client={client} active />
+      </box>
+      <box $type="end" halign={Gtk.Align.START}>
+        <For each={next}>{(member) => <TitleClient client={member} active={false} />}</For>
+      </box>
+    </centerbox>
+  );
+}
+
+function TitleClient({
+  client,
+  active,
+}: {
+  client: Hyprland.Client;
+  active: boolean;
+}): JSX.Element {
+  const title = createBinding(client, "title");
+  const initialClass = createBinding(client, "initialClass");
+  const icon = createComputed(() => getIcon(initialClass(), title()));
+
+  return (
+    <box class={`title-client ${active ? "active" : "inactive"}`}>
       <image iconName={icon} />
       <label valign={Gtk.Align.CENTER} label={title} ellipsize={Pango.EllipsizeMode.END} />
     </box>
