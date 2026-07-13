@@ -108,11 +108,50 @@ window.Bar {
     > button {
       @include button;
 
-      > box {
-        > image {
-          padding-left: 2.5px;
-          padding-right: 2.5px;
-          font-size: $button_size;
+      > overlay {
+        .workspace-icons,
+        .workspace-title {
+          transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .workspace-icons {
+          > image {
+            padding-left: 2.5px;
+            padding-right: 2.5px;
+            font-size: $button_size;
+          }
+        }
+
+        .workspace-title {
+          padding-left: 4px;
+          padding-right: 4px;
+          opacity: 0;
+
+          label {
+            font-size: 10pt;
+          }
+        }
+      }
+
+      &.titled {
+        min-width: 72px;
+
+        .workspace-icons {
+          opacity: 0;
+        }
+
+        .workspace-title {
+          opacity: 1;
+        }
+
+        &:hover {
+          .workspace-icons {
+            opacity: 1;
+          }
+
+          .workspace-title {
+            opacity: 0;
+          }
         }
       }
     }

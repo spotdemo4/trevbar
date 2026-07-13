@@ -86,25 +86,53 @@ function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
     hypr,
     "clients",
   )((c) => c.filter((client) => client.workspace.id === workspace.id).sort((a, b) => a.x - b.x));
+  const zed = clients(
+    (clients) => clients.find((client) => client.initialClass.startsWith("dev.zed.Zed")) ?? null,
+  );
+  const titled = zed((client) => client !== null);
 
   return (
     <togglebutton
+      class={titled((titled) => (titled ? "titled" : ""))}
       onClicked={() => workspace.focus()}
       tooltipText={`Workspace ${workspace.name}`}
       cursor={Gdk.Cursor.new_from_name("pointer", null)}
       active={focused}
     >
-      <box halign={Gtk.Align.CENTER}>
-        <For each={clients}>
-          {(client) => (
-            <image
-              iconName={getIcon(client.initialClass, client.title)}
-              tooltipText={client.title}
-            />
-          )}
-        </For>
-      </box>
+      <overlay>
+        <box class="workspace-icons" halign={Gtk.Align.CENTER}>
+          <For each={clients}>
+            {(client) => (
+              <image
+                iconName={getIcon(client.initialClass, client.title)}
+                tooltipText={client.title}
+              />
+            )}
+          </For>
+        </box>
+        <box
+          $type="overlay"
+          class="workspace-title"
+          halign={Gtk.Align.FILL}
+          valign={Gtk.Align.FILL}
+          canTarget={false}
+          visible={titled}
+        >
+          <With value={zed}>
+            {(client) => (client ? <WorkspaceTitle client={client} /> : <box />)}
+          </With>
+        </box>
+      </overlay>
     </togglebutton>
+  );
+}
+
+function WorkspaceTitle({ client }: { client: Hyprland.Client }): JSX.Element {
+  const title = createBinding(client, "title");
+  const workspaceTitle = title((title) => title.split(" — ", 1)[0].replace(/ [↙↗]$/, ""));
+
+  return (
+    <label hexpand label={workspaceTitle} ellipsize={Pango.EllipsizeMode.END} tooltipText={title} />
   );
 }
 
