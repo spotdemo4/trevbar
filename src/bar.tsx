@@ -220,17 +220,24 @@ function GroupedTitle({
   });
   const previous = arranged(({ previous }) => previous);
   const next = arranged(({ next }) => next);
+  const sides = Gtk.SizeGroup.new(Gtk.SizeGroupMode.HORIZONTAL);
 
   return (
     <centerbox class="title grouped-title" valign={Gtk.Align.CENTER}>
-      <box $type="start" halign={Gtk.Align.END} valign={Gtk.Align.CENTER}>
-        <For each={previous}>{(member) => <TitleClient client={member} active={false} />}</For>
+      <box $type="start" valign={Gtk.Align.CENTER} $={(side: Gtk.Box) => sides.add_widget(side)}>
+        <box hexpand />
+        <box>
+          <For each={previous}>{(member) => <TitleClient client={member} active={false} />}</For>
+        </box>
       </box>
       <box $type="center" valign={Gtk.Align.CENTER}>
         <TitleClient client={client} active />
       </box>
-      <box $type="end" halign={Gtk.Align.START} valign={Gtk.Align.CENTER}>
-        <For each={next}>{(member) => <TitleClient client={member} active={false} />}</For>
+      <box $type="end" valign={Gtk.Align.CENTER} $={(side: Gtk.Box) => sides.add_widget(side)}>
+        <box>
+          <For each={next}>{(member) => <TitleClient client={member} active={false} />}</For>
+        </box>
+        <box hexpand />
       </box>
     </centerbox>
   );
