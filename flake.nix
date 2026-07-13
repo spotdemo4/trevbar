@@ -62,6 +62,10 @@
         agsFull = ags.packages.${system}.default.override {
           inherit extraPackages;
         };
+
+        fontConfig = pkgs.makeFontsConf {
+          fontDirectories = [ pkgs.inter ];
+        };
       in
       {
         devShells = {
@@ -260,6 +264,7 @@
 
             preFixup = ''
               gappsWrapperArgs+=(
+                --set FONTCONFIG_FILE "${fontConfig}"
                 --prefix PATH : "${pkgs.nvtopPackages.intel}/bin"
                 --prefix PATH : "${pkgs.lm_sensors}/bin"
                 --prefix PATH : "${pkgs.systemd}/bin"
