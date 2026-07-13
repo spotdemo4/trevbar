@@ -246,14 +246,20 @@ function TitleClient({
   const title = createBinding(client, "title");
   const initialClass = createBinding(client, "initialClass");
   const icon = createComputed(() => getIcon(initialClass(), title()));
+  const label = active
+    ? title
+    : title((title) => {
+        const characters = Array.from(title);
+        return characters.length > 24 ? `${characters.slice(0, 21).join("")}...` : title;
+      });
 
   return (
     <box class={`title-client ${active ? "active" : "inactive"}`} valign={Gtk.Align.CENTER}>
       <image iconName={icon} valign={Gtk.Align.CENTER} />
       <label
         valign={Gtk.Align.CENTER}
-        label={title}
-        ellipsize={Pango.EllipsizeMode.END}
+        label={label}
+        ellipsize={active ? Pango.EllipsizeMode.END : Pango.EllipsizeMode.NONE}
         maxWidthChars={active ? -1 : 24}
         tooltipText={title}
       />
