@@ -222,14 +222,14 @@ function GroupedTitle({
   const next = arranged(({ next }) => next);
 
   return (
-    <centerbox class="title grouped-title">
-      <box $type="start" halign={Gtk.Align.END}>
+    <centerbox class="title grouped-title" valign={Gtk.Align.CENTER}>
+      <box $type="start" halign={Gtk.Align.END} valign={Gtk.Align.CENTER}>
         <For each={previous}>{(member) => <TitleClient client={member} active={false} />}</For>
       </box>
-      <box $type="center">
+      <box $type="center" valign={Gtk.Align.CENTER}>
         <TitleClient client={client} active />
       </box>
-      <box $type="end" halign={Gtk.Align.START}>
+      <box $type="end" halign={Gtk.Align.START} valign={Gtk.Align.CENTER}>
         <For each={next}>{(member) => <TitleClient client={member} active={false} />}</For>
       </box>
     </centerbox>
@@ -248,8 +248,8 @@ function TitleClient({
   const icon = createComputed(() => getIcon(initialClass(), title()));
 
   return (
-    <box class={`title-client ${active ? "active" : "inactive"}`}>
-      <image iconName={icon} />
+    <box class={`title-client ${active ? "active" : "inactive"}`} valign={Gtk.Align.CENTER}>
+      <image iconName={icon} valign={Gtk.Align.CENTER} />
       <label
         valign={Gtk.Align.CENTER}
         label={title}

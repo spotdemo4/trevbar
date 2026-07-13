@@ -118,17 +118,14 @@ window.Bar {
   }
 
   .title {
-    margin-left: 2.5px;
-    margin-right: 2.5px;
-    padding-left: 4px;
-    padding-right: 4px;
-
-    background-color: $background;
-    border-radius: 6px;
-
     .title-client {
-      padding-left: 4px;
-      padding-right: 4px;
+      min-width: 0;
+      margin-left: 2.5px;
+      margin-right: 2.5px;
+      padding: 3px 8px;
+
+      background-color: $background;
+      border-radius: 6px;
 
       image {
         font-size: $button_size;
