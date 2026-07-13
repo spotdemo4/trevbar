@@ -199,6 +199,11 @@ function GroupedTitle({
     const activeIndex = members.findIndex((member) => member.address === client.address);
     if (activeIndex < 0) return { previous: [], next: [] };
 
+    if (members.length === 2) {
+      const other = members[(activeIndex + 1) % members.length];
+      return { previous: [other], next: [other] };
+    }
+
     const previousCount = Math.floor((members.length - 1) / 2);
     const nextCount = members.length - previousCount - 1;
     const previous = Array.from(
@@ -245,7 +250,13 @@ function TitleClient({
   return (
     <box class={`title-client ${active ? "active" : "inactive"}`}>
       <image iconName={icon} />
-      <label valign={Gtk.Align.CENTER} label={title} ellipsize={Pango.EllipsizeMode.END} />
+      <label
+        valign={Gtk.Align.CENTER}
+        label={title}
+        ellipsize={Pango.EllipsizeMode.END}
+        maxWidthChars={active ? -1 : 24}
+        tooltipText={title}
+      />
     </box>
   );
 }

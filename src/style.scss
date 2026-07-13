@@ -139,6 +139,10 @@ window.Bar {
         font-size: 10pt;
       }
 
+      &.active label {
+        font-weight: bold;
+      }
+
       &.inactive {
         opacity: 0.6;
 
