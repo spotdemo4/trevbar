@@ -171,17 +171,19 @@ function FocusedTitle({ client }: { client: Hyprland.Client }): JSX.Element {
   const group = createBinding(client, "group");
 
   return (
-    <With value={group}>
-      {(group) =>
-        group ? (
-          <GroupedTitle client={client} group={group} />
-        ) : (
-          <box class="title">
-            <TitleClient client={client} active />
-          </box>
-        )
-      }
-    </With>
+    <box>
+      <With value={group}>
+        {(group) =>
+          group ? (
+            <GroupedTitle client={client} group={group} />
+          ) : (
+            <box class="title">
+              <TitleClient client={client} active />
+            </box>
+          )
+        }
+      </With>
+    </box>
   );
 }
 
