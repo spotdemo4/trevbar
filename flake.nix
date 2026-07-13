@@ -19,7 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     astal = {
-      url = "github:aylur/astal";
+      url = "github:spotdemo4/astal";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ags = {

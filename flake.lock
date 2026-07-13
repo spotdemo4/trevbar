@@ -30,15 +30,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1783119102,
-        "narHash": "sha256-bXd034/ARs18ZQ7hWUAw9NwyfBmcKQws8DQHzwYp6jM=",
-        "owner": "aylur",
+        "lastModified": 1783925863,
+        "narHash": "sha256-ZeqxKn9iDzuwzeILNsgARyHcBBGyp/Sr0bBh5WcoHXo=",
+        "owner": "spotdemo4",
         "repo": "astal",
-        "rev": "04454c22094401cc8e682cfe1f8ecc3194cac5f9",
+        "rev": "a576e03246ab1e5a58a0b9019cf730beaaed3b74",
         "type": "github"
       },
       "original": {
-        "owner": "aylur",
+        "owner": "spotdemo4",
         "repo": "astal",
         "type": "github"
       }
