@@ -260,7 +260,6 @@ function TitleClient({
         valign={Gtk.Align.CENTER}
         label={label}
         ellipsize={active ? Pango.EllipsizeMode.END : Pango.EllipsizeMode.NONE}
-        maxWidthChars={active ? -1 : 24}
         tooltipText={title}
       />
     </box>
