@@ -209,9 +209,8 @@ function TitleClient({
         const characters = Array.from(title);
         return characters.length > 24 ? `${characters.slice(0, 21).join("")}...` : title;
       });
-
-  return (
-    <box class={`title-client ${active ? "active" : "inactive"}`} valign={Gtk.Align.CENTER}>
+  const content = (
+    <box valign={Gtk.Align.CENTER}>
       <image iconName={icon} valign={Gtk.Align.CENTER} />
       <label
         valign={Gtk.Align.CENTER}
@@ -220,6 +219,21 @@ function TitleClient({
         tooltipText={title}
       />
     </box>
+  );
+
+  return active ? (
+    <box class={`title-client ${active ? "active" : "inactive"}`} valign={Gtk.Align.CENTER}>
+      {content}
+    </box>
+  ) : (
+    <button
+      class="title-client inactive"
+      valign={Gtk.Align.CENTER}
+      onClicked={() => client.focus()}
+      cursor={Gdk.Cursor.new_from_name("pointer", null)}
+    >
+      {content}
+    </button>
   );
 }
 
