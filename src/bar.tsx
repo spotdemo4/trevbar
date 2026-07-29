@@ -1,4 +1,4 @@
-import { createBinding, createComputed, For, With } from "ags";
+import { createBinding, createComputed, For, onCleanup, With } from "ags";
 import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
 import { execAsync } from "ags/process";
@@ -27,6 +27,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
 
   return (
     <window
+      $={(self) => onCleanup(() => (self as Astal.Window).destroy())}
       visible
       name="trevbar"
       class="Bar"
