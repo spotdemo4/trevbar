@@ -100,7 +100,13 @@ function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
       cursor={Gdk.Cursor.new_from_name("pointer", null)}
       active={focused}
     >
-      <overlay>
+      <overlay
+        $={(self) => {
+          const overlay = self as Gtk.Overlay;
+          const title = overlay.get_last_child();
+          if (title) overlay.set_measure_overlay(title, true);
+        }}
+      >
         <box class="workspace-icons" halign={Gtk.Align.CENTER}>
           <For each={clients}>
             {(client) => (
@@ -133,7 +139,13 @@ function WorkspaceTitle({ client }: { client: Hyprland.Client }): JSX.Element {
   const workspaceTitle = title((title) => title.split(" — ", 1)[0].replace(/ [↙↗]$/, ""));
 
   return (
-    <label hexpand label={workspaceTitle} ellipsize={Pango.EllipsizeMode.END} tooltipText={title} />
+    <label
+      hexpand
+      label={workspaceTitle}
+      ellipsize={Pango.EllipsizeMode.END}
+      maxWidthChars={16}
+      tooltipText={title}
+    />
   );
 }
 
