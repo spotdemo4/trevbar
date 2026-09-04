@@ -12,7 +12,7 @@
     "configure": "ags types -u -d . && oxfmt --write tsconfig.json"
   },
   "dependencies": {
-    "filesize": "^11.0.22"
+    "filesize": "^11.0.23"
   },
   "devDependencies": {
     "@ts-for-gir/cli": "^4.5.0",
