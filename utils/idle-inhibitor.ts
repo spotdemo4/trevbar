@@ -1,6 +1,8 @@
+import { readFile, writeFile } from "ags/file";
 import GObject, { getter, register } from "ags/gobject";
 import app from "ags/gtk4/app";
 import { subprocess } from "ags/process";
+import GLib from "gi://GLib?version=2.0";
 
 const command = [
   "systemd-inhibit",
@@ -11,6 +13,11 @@ const command = [
   "sleep",
   "infinity",
 ];
+const stateFile = GLib.build_filenamev([
+  GLib.get_user_state_dir(),
+  "trevbar",
+  "idle-inhibitor-enabled",
+]);
 
 @register({ GTypeName: "IdleInhibitor" })
 export default class IdleInhibitor extends GObject.Object {
@@ -22,8 +29,14 @@ export default class IdleInhibitor extends GObject.Object {
     return this.instance;
   }
 
+  #enabled = false;
   #inhibited = false;
   #process: ReturnType<typeof subprocess> | null = null;
+
+  @getter(Boolean)
+  get enabled() {
+    return this.#enabled;
+  }
 
   @getter(Boolean)
   get inhibited() {
@@ -33,7 +46,10 @@ export default class IdleInhibitor extends GObject.Object {
   constructor() {
     super();
 
+    this.#enabled = this.#loadEnabled();
     app.connect("shutdown", () => this.stop());
+
+    if (this.#enabled) this.start();
   }
 
   start() {
@@ -67,11 +83,43 @@ export default class IdleInhibitor extends GObject.Object {
   }
 
   toggle() {
-    if (this.#inhibited) {
-      this.stop();
-    } else {
-      this.start();
+    const enabled = !this.#enabled;
+    this.#setEnabled(enabled);
+
+    try {
+      writeFile(stateFile, `${enabled}\n`);
+    } catch (error) {
+      console.error("Failed to save idle inhibitor state", error);
     }
+
+    if (enabled) {
+      this.start();
+    } else {
+      this.stop();
+    }
+  }
+
+  #loadEnabled() {
+    if (!GLib.file_test(stateFile, GLib.FileTest.EXISTS)) return false;
+
+    try {
+      const enabled = readFile(stateFile).trim();
+      if (enabled === "true") return true;
+      if (enabled === "false") return false;
+
+      console.warn("Invalid idle inhibitor state", enabled);
+    } catch (error) {
+      console.warn("Failed to read idle inhibitor state", error);
+    }
+
+    return false;
+  }
+
+  #setEnabled(enabled: boolean) {
+    if (this.#enabled === enabled) return;
+
+    this.#enabled = enabled;
+    this.notify("enabled");
   }
 
   #setInhibited(inhibited: boolean) {

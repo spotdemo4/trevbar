@@ -1,6 +1,7 @@
 import { createBinding, For, This } from "ags";
 import app from "ags/gtk4/app";
 
+import IdleInhibitorService from "../utils/idle-inhibitor";
 import Bar from "./bar";
 
 import style from "./style.scss";
@@ -11,6 +12,7 @@ app.start({
   icons: `${SRC}/../icons`,
   instanceName: "trevbar",
   main() {
+    IdleInhibitorService.get_default();
     const monitors = createBinding(app, "monitors");
 
     return (

@@ -703,12 +703,17 @@ function SysTray(): JSX.Element {
 
 function IdleInhibitor(): JSX.Element {
   const idleInhibitor = IdleInhibitorService.get_default();
+  const enabled = createBinding(idleInhibitor, "enabled");
   const inhibited = createBinding(idleInhibitor, "inhibited");
   const color = createComputed(() =>
-    animate("idle-inhibitor", () => (inhibited() ? "green" : "gray")),
+    animate("idle-inhibitor", () => (enabled() ? (inhibited() ? "green" : "yellow") : "gray")),
   );
-  const tooltipText = inhibited((inhibited) =>
-    inhibited ? "Idle inhibitor enabled" : "Idle inhibitor disabled",
+  const tooltipText = createComputed(() =>
+    enabled()
+      ? inhibited()
+        ? "Idle inhibitor enabled"
+        : "Idle inhibitor enabled but inactive"
+      : "Idle inhibitor disabled",
   );
 
   return (
