@@ -18,13 +18,17 @@ export function getHyprlandMonitor(monitor: Gdk.Monitor): Hyprland.Monitor | nul
 
   // Try to get hyprland monitor with cooordinates
   const hyprlandMonitors = hypr.get_monitors();
+  const geometry = monitor.get_geometry();
   for (const m of hyprlandMonitors) {
-    const geometry = monitor.get_geometry();
+    // hyprland reports the mode size in pixels, gdk reports the logical (scaled, rotated) size
+    const rotated = m.transform % 2 === 1;
+    const width = Math.round((rotated ? m.height : m.width) / m.scale);
+    const height = Math.round((rotated ? m.width : m.height) / m.scale);
     if (
       m.x === geometry.x &&
       m.y === geometry.y &&
-      m.height === geometry.height &&
-      m.width === geometry.width
+      height === geometry.height &&
+      width === geometry.width
     ) {
       return m;
     }

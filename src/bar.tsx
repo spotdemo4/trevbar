@@ -62,16 +62,19 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
 
 function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
   const hypr = Hyprland.get_default();
-  const hyprMonitor = getHyprlandMonitor(monitor);
-  if (!hyprMonitor) {
-    return <box />;
-  }
-  const workspaces = createBinding(
-    hypr,
-    "workspaces",
-  )((w) =>
-    w.filter((workspace) => workspace.monitor.id === hyprMonitor.id).sort((a, b) => a.id - b.id),
-  );
+  const monitors = createBinding(hypr, "monitors");
+  const allWorkspaces = createBinding(hypr, "workspaces");
+  const workspaces = createComputed(() => {
+    // on hotplug, gtk can report a monitor before hyprland does, so retry when hyprland's monitors change
+    monitors();
+    const hyprMonitor = getHyprlandMonitor(monitor);
+    if (!hyprMonitor) return [];
+
+    // a workspace's monitor is null if it was synced before its monitor was added
+    return allWorkspaces()
+      .filter((workspace) => createBinding(workspace, "monitor")()?.id === hyprMonitor.id)
+      .sort((a, b) => a.id - b.id);
+  });
 
   return (
     <box class="workspaces">
