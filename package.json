@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@ts-for-gir/cli": "5.5.0",
-    "@types/node": "^24.19.1",
+    "@types/node": "^24.19.2",
     "typescript": "^6.0.3"
   },
   "optionalDependencies": {
