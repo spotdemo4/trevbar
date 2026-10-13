@@ -26,5 +26,6 @@ jobs:
         run: flake-release
         env:
           REGISTRY: trev.zip
-          GITHUB_TOKEN: ${{ secrets.DOCTOR_TOKEN }}
-          DELETE_OLD_RELEASE_ARTIFACTS: true
+          GIT_TOKEN: ${{ secrets.DOCTOR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          DELETE_OLD_RELEASE_ARTIFACTS: 2
