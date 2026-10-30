@@ -15,7 +15,7 @@
     "filesize": "^11.0.29"
   },
   "devDependencies": {
-    "@ts-for-gir/cli": "5.5.0",
+    "@ts-for-gir/cli": "5.6.0",
     "@types/node": "^24.19.2",
     "typescript": "^6.0.3"
   },
