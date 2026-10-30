@@ -86,10 +86,8 @@ function Workspaces({ monitor }: { monitor: Gdk.Monitor }): JSX.Element {
 function Workspace({ workspace }: { workspace: Hyprland.Workspace }) {
   const hypr = Hyprland.get_default();
   const focused = createBinding(hypr, "focusedWorkspace")((w) => w.id === workspace.id);
-  const clients = createBinding(
-    hypr,
-    "clients",
-  )((c) => c.filter((client) => client.workspace.id === workspace.id).sort((a, b) => a.x - b.x));
+  // hypr.clients isn't notified when a window moves between workspaces, but workspace.clients is
+  const clients = createBinding(workspace, "clients")((c) => [...c].sort((a, b) => a.x - b.x));
   const zed = clients(
     (clients) => clients.find((client) => client.initialClass.startsWith("dev.zed.Zed")) ?? null,
   );
