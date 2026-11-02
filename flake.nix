@@ -68,29 +68,34 @@
         };
       in
       {
+
+        # nix develop [#...]
         devShells = {
           default = pkgs.mkShell {
             shellHook = pkgs.shellhook.ref;
             buildInputs = [ agsFull ];
             packages = with pkgs; [
-              nodejs_24
+              # node
+              nodejs_26
+              oxlint
+              typescript
 
               # deps
               nvtopPackages.intel
               lm_sensors
               systemd
 
-              # lint
-              oxlint
-              nixd
-              nil
+              vscode-json-languageserver # json
+              yaml-language-server # yaml
+              tombi # toml
+              oxfmt # format
 
-              # format
-              oxfmt
+              # nix
+              nixd
               nixfmt
-              treefmt
 
               # util
+              treefmt
               bumper
             ];
           };
@@ -111,29 +116,129 @@
             buildInputs = [ agsFull ];
             packages = with pkgs; [
               renovate
-              nodejs_24 # npm install / audit
+              nodejs_26 # npm install
             ];
           };
 
           vulnerable = pkgs.mkShell {
             packages = with pkgs; [
-              nodejs_24 # npm audit
+              nodejs_26 # npm audit
               flake-checker # nix
               zizmor # actions
             ];
           };
         };
 
+        # nix run #...
         apps = pkgs.mkApps {
           dev = "npm run dev";
           configure = "npm run configure";
         };
 
+        # nix build [#...]
+        packages = {
+          default = pkgs.buildNpmPackage (
+            final: with pkgs.lib; {
+              pname = "trevbar";
+              version = "0.8.6";
+
+              src = fileset.toSource {
+                root = ./.;
+                fileset = fileset.unions [
+                  ./.npmrc
+                  ./.oxfmtrc.json
+                  ./.oxlintrc.json
+                  ./env.d.ts
+                  ./icons
+                  ./LICENSE
+                  ./package-lock.json
+                  ./package.json
+                  ./README.md
+                  ./src
+                  ./tsconfig.json
+                  ./utils
+                ];
+              };
+
+              nodejs = pkgs.nodejs_26;
+              npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+              npmDeps = pkgs.importNpmLock {
+                npmRoot = final.src;
+                packageSourceOverrides = {
+                  "node_modules/ags" = "${agsFull}/share/ags/js";
+                };
+              };
+
+              nativeBuildInputs = with pkgs; [
+                wrapGAppsHook3
+                gobject-introspection
+                agsFull
+              ];
+              buildInputs =
+                with pkgs;
+                [
+                  nvtopPackages.intel
+                  lm_sensors
+                ]
+                ++ extraPackages;
+              dontNpmBuild = true;
+
+              installPhase = ''
+                runHook preInstall
+                mkdir -p $out/bin $out/share
+                cp -r * $out/share
+                ags bundle src/app.tsx $out/bin/${final.pname} -d "SRC='$out/share'" --gtk 4
+                runHook postInstall
+              '';
+
+              preFixup = ''
+                gappsWrapperArgs+=(
+                  --set FONTCONFIG_FILE "${fontConfig}"
+                  --prefix PATH : "${pkgs.nvtopPackages.intel}/bin"
+                  --prefix PATH : "${pkgs.lm_sensors}/bin"
+                  --prefix PATH : "${pkgs.systemd}/bin"
+                  --prefix PATH : "${pkgs.coreutils}/bin"
+                )
+              '';
+
+              meta = {
+                mainProgram = "trevbar";
+                description = "Trev's status bar";
+                license = licenses.mit;
+                platforms = platforms.unix;
+                homepage = "https://trev.zip/llc/trevbar";
+                downloadPage = "https://trev.zip/llc/trevbar/releases";
+                changelog = "https://trev.zip/llc/trevbar/releases/tag/v${final.version}";
+                sourceProvenance = [ sourceTypes.fromSource ];
+                maintainers = [ maintainers.spotdemo4 ];
+              };
+            }
+          );
+        };
+
+        # nix fmt
+        formatter = pkgs.treefmt.withConfig {
+          configFile = ./treefmt.toml;
+          runtimeInputs = with pkgs; [
+            oxfmt
+            nixfmt
+          ];
+        };
+
+        # nix flake check
         checks = pkgs.mkChecks {
-          trevbar = self.packages.${system}.default.overrideAttrs {
-            dontBuild = true;
-            installPhase = ''
-              touch $out
+          inherit (self.packages.${system}) default;
+
+          node-lint = {
+            src = self.packages.${system}.default;
+            packages = with pkgs; [
+              oxfmt
+              oxlint
+            ];
+            script = ''
+              oxfmt --check
+              ags types -u -d .
+              oxlint --deny-warnings
             '';
           };
 
@@ -174,20 +279,27 @@
             '';
           };
 
-          renovate = {
+          renovate-fj = {
             root = ./.forgejo;
-            files = ./.forgejo/renovate.json;
+            files = ./.forgejo/renovate.jsonc;
             packages = with pkgs; [
               renovate
             ];
             script = ''
-              renovate-config-validator renovate.json
+              renovate-config-validator renovate.jsonc
             '';
           };
 
           config = {
             root = ./.;
-            filter = file: file.hasExt "json" || file.hasExt "yaml" || file.hasExt "toml" || file.hasExt "md";
+            filter =
+              file:
+              file.hasExt "json"
+              || file.hasExt "jsonc"
+              || file.hasExt "yaml"
+              || file.hasExt "toml"
+              || file.hasExt "md";
+            include = [ ./.oxfmtrc.json ];
             packages = with pkgs; [
               oxfmt
             ];
@@ -195,100 +307,6 @@
               oxfmt --check
             '';
           };
-        };
-
-        packages.default =
-          with pkgs.lib;
-          pkgs.buildNpmPackage (final: {
-            pname = "trevbar";
-            version = "0.8.6";
-            nodejs = pkgs.nodejs_24;
-
-            src = fileset.toSource {
-              root = ./.;
-              fileset = fileset.unions [
-                ./.npmrc
-                ./.oxfmtrc.json
-                ./.oxlintrc.json
-                ./env.d.ts
-                ./LICENSE
-                ./package.json
-                ./package-lock.json
-                ./README.md
-                ./tsconfig.json
-                ./icons
-                ./src
-                ./utils
-              ];
-            };
-
-            npmDeps = pkgs.importNpmLock {
-              npmRoot = ./.;
-              packageSourceOverrides = {
-                "node_modules/ags" = "${agsFull}/share/ags/js";
-              };
-            };
-            npmConfigHook = pkgs.importNpmLock.npmConfigHook;
-
-            nativeBuildInputs = with pkgs; [
-              wrapGAppsHook3
-              gobject-introspection
-              agsFull
-            ];
-            buildInputs =
-              with pkgs;
-              [
-                nvtopPackages.intel
-                lm_sensors
-              ]
-              ++ extraPackages;
-            dontNpmBuild = true;
-
-            nativeCheckInputs = with pkgs; [
-              oxfmt
-              oxlint
-            ];
-            checkPhase = ''
-              oxfmt --check
-              ags types -u -d .
-              oxlint --deny-warnings
-            '';
-
-            installPhase = ''
-              runHook preInstall
-              mkdir -p $out/bin $out/share
-              cp -r * $out/share
-              ags bundle src/app.tsx $out/bin/${final.pname} -d "SRC='$out/share'" --gtk 4
-              runHook postInstall
-            '';
-
-            preFixup = ''
-              gappsWrapperArgs+=(
-                --set FONTCONFIG_FILE "${fontConfig}"
-                --prefix PATH : "${pkgs.nvtopPackages.intel}/bin"
-                --prefix PATH : "${pkgs.lm_sensors}/bin"
-                --prefix PATH : "${pkgs.systemd}/bin"
-                --prefix PATH : "${pkgs.coreutils}/bin"
-              )
-            '';
-
-            meta = {
-              description = "Trev's status bar";
-              mainProgram = "trevbar";
-              license = licenses.mit;
-              platforms = platforms.unix;
-              homepage = "https://trev.zip/trev/trevbar";
-              changelog = "https://trev.zip/trev/trevbar/releases/tag/v${final.version}";
-              downloadPage = "https://trev.zip/trev/trevbar/releases";
-            };
-          });
-
-        formatter = pkgs.treefmt.withConfig {
-          configFile = ./treefmt.toml;
-          runtimeInputs = with pkgs; [
-            oxfmt
-            nixfmt
-          ];
         };
       }
     );

@@ -1,3 +1,9 @@
 {
-  "recommendations": ["oxc.oxc-vscode", "jnoortheen.nix-ide", "tombi-toml.tombi"]
+  "recommendations": [
+    "TypeScriptTeam.native-preview",
+    "oxc.oxc-vscode",
+    "jnoortheen.nix-ide",
+    "redhat.vscode-yaml",
+    "tombi-toml.tombi"
+  ]
 }

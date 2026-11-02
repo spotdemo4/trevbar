@@ -7,7 +7,7 @@
   "platform": "forgejo",
   "endpoint": "https://trev.zip/api/v1",
   "repositories": ["llc/trevbar"],
-  "allowedCommands": ["npm audit fix --omit optional"],
+  "allowedCommands": ["^npm audit fix --audit-level=none --omit optional$"],
 
   // repository
   "extends": ["config:recommended"],
@@ -21,7 +21,7 @@
     "schedule": ["* * * * 0"], // sunday
     "skipInstalls": false,
     "postUpgradeTasks": {
-      "commands": ["npm audit fix --omit optional"]
+      "commands": ["npm audit fix --audit-level=none --omit optional"]
     }
   },
   "packageRules": [
@@ -32,6 +32,11 @@
     {
       "matchManagers": ["nix"],
       "addLabels": ["nix"]
+    },
+    {
+      "matchManagers": ["nix"],
+      "matchUpdateTypes": ["digest"],
+      "enabled": false
     },
     {
       "matchManagers": ["github-actions"],

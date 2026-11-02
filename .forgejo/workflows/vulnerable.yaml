@@ -9,7 +9,7 @@ on:
 enable-openid-connect: true
 
 jobs:
-  npm:
+  actions:
     # zizmor: ignore[excessive-permissions]
     runs-on: ubuntu-26.04
     steps:
@@ -20,8 +20,10 @@ jobs:
           niks3_url: https://niks3.trev.zip
           shell: vulnerable
 
-      - name: Run npm audit
-        run: npm audit --audit-level moderate --omit optional
+      - name: Run zizmor
+        run: zizmor $(find .forgejo/workflows -name "*.yaml")
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   nix:
     # zizmor: ignore[excessive-permissions]
@@ -37,7 +39,7 @@ jobs:
       - name: Run flake-checker
         run: flake-checker -f
 
-  actions:
+  npm:
     # zizmor: ignore[excessive-permissions]
     runs-on: ubuntu-26.04
     steps:
@@ -48,7 +50,5 @@ jobs:
           niks3_url: https://niks3.trev.zip
           shell: vulnerable
 
-      - name: Run zizmor
-        run: zizmor .forgejo .github
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Run npm audit
+        run: npm audit --audit-level moderate --omit optional
