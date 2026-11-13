@@ -140,7 +140,7 @@
           default = pkgs.buildNpmPackage (
             final: with pkgs.lib; {
               pname = "trevbar";
-              version = "0.8.7";
+              version = "0.8.8";
 
               src = fileset.toSource {
                 root = ./.;
